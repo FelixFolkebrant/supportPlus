@@ -2,8 +2,12 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import './googleAuth'
+import './google/auth'
+import { getEmails } from './google/getEmails'
 
+ipcMain.handle('gmail:getMails', async (_event, args) => {
+  return await getEmails(args)
+})
 
 function createWindow(): void {
   // Create the browser window.

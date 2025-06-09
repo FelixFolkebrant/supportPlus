@@ -1,8 +1,18 @@
 import React from 'react'
-import { useLastMails } from '@renderer/hooks/useLastMail'
+import { useMails } from '@renderer/hooks/useLastMail'
 
-export default function LastThree() {
-  const mails = useLastMails()
+interface LastThreeProps {
+  maxResults?: number
+  labelIds?: string[]
+  query?: string
+}
+
+export default function LastThree({
+  maxResults = 3,
+  labelIds = ['INBOX'],
+  query = 'category:primary'
+}: LastThreeProps = {}): JSX.Element {
+  const mails = useMails({ maxResults, labelIds, query })
   return (
     <ul className="space-y-2">
       {mails.map((m) => (
