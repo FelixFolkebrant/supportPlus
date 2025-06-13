@@ -1,13 +1,11 @@
-import { UnansweredMailsProvider } from './hooks/UnansweredMailsContext'
+import { GmailProvider } from './hooks/GmailContext'
 import MailWindow from './components/MailWindow'
 
 function App(): React.JSX.Element {
-
   return (
-    <UnansweredMailsProvider>
-      {/* <Chat /> */}
+    <GmailProvider>
       <MailWindow />
-    </UnansweredMailsProvider>
+    </GmailProvider>
   )
 }
 

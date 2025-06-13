@@ -1,14 +1,14 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import MailPreview from './MailPreview'
-import { useUnansweredMailsContext } from '@renderer/hooks/useUnansweredMailsContext'
+import { GmailContext } from '../hooks/GmailContext'
 
 export default function MailWindow(): React.ReactElement {
-  const { mails = [], loading } = useUnansweredMailsContext()
+  const { unansweredMails = [], loading } = useContext(GmailContext) ?? { unansweredMails: [], loading: false }
   return (
     <div className="px-10">
       <ul className="flex flex-col gap-3">
-        {Array.isArray(mails) && mails.length > 0 ? (
-          mails.map((m) => <MailPreview key={m.id} {...m} />)
+        {Array.isArray(unansweredMails) && unansweredMails.length > 0 ? (
+          unansweredMails.map((m) => <MailPreview key={m.id} {...m} />)
         ) : loading ? (
           <li>Loading...</li>
         ) : (
