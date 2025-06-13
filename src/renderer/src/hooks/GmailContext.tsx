@@ -27,7 +27,11 @@ export const GmailProvider = ({ children }: { children: ReactNode }): JSX.Elemen
     setLoading(true)
     Promise.all([
       ipcRenderer.invoke('gmail:getMails', { maxResults: 3, labelIds: ['INBOX'], query: '' }),
-      ipcRenderer.invoke('gmail:getUnansweredMails', { maxResults: 3, labelIds: ['INBOX'], query: 'category:primary is:unread' }),
+      ipcRenderer.invoke('gmail:getUnansweredMails', {
+        maxResults: 3,
+        labelIds: ['INBOX'],
+        query: 'category:primary is:unread'
+      })
     ])
       .then(([allData, unansweredData]) => {
         setMails(allData as Mail[])
