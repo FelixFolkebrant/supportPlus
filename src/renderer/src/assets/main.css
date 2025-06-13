@@ -1,5 +1,26 @@
 @import './base.css';
-@import "tailwindcss";
+@import 'tailwindcss';
+@import './inter-font.css';
+@theme {
+  --color-primary: #3059ff;
+  --color-secondary: #45474b;
+  --color-third: #686b71;
+}
+html,
+body {
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    sans-serif;
+  background: transparent !important;
+}
 body {
   display: flex;
   align-items: center;

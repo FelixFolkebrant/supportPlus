@@ -4,9 +4,14 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import './google/auth'
 import { getEmails } from './google/getEmails'
+import { getUnansweredEmails } from './google/getUnansweredEmails'
 
 ipcMain.handle('gmail:getMails', async (_event, args) => {
   return await getEmails(args)
+})
+
+ipcMain.handle('gmail:getUnansweredMails', async (_event, args) => {
+  return await getUnansweredEmails(args)
 })
 
 function createWindow(): void {
@@ -16,6 +21,8 @@ function createWindow(): void {
     height: 670,
     show: false,
     autoHideMenuBar: true,
+    resizable: true, // Allow window to be resizable
+    fullscreenable: true, // Allow fullscreen mode
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

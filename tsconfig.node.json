@@ -5,5 +5,8 @@
     "composite": true,
     "types": ["electron-vite/node"],
     "moduleResolution": "bundler"
-  }
+  },
+  "exclude": ["dist", "build", "node_modules", ".vite"],
+  "javascript.implicitProjectConfig.checkJs": false
+
 }
