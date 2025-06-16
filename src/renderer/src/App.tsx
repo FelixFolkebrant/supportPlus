@@ -1,24 +1,15 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect } from 'react'
 import { GmailProvider } from './hooks/GmailContext'
 import MailWindow from './components/MailWindow'
 import FullMail from './components/FullMail'
 import LoadingScreen from './components/LoadingScreen'
 import LoginScreen from './components/LoginScreen'
 import type { Mail } from './hooks/GmailContextValue'
-import { GmailContext } from './hooks/GmailContextValue'
+import { useGmail } from './hooks/useGmail'
 import type React from 'react'
 
 function MailAppContent(): React.JSX.Element {
-  const { unansweredMails, loading, needsLogin, login, loginInProgress, logout } = useContext(
-    GmailContext
-  ) ?? {
-    unansweredMails: [],
-    loading: false,
-    needsLogin: false,
-    login: () => {},
-    loginInProgress: false,
-    logout: () => {}
-  }
+  const { unansweredMails, loading, needsLogin, login, loginInProgress, logout } = useGmail()
   const [selectedMail, setSelectedMail] = useState<Mail | null>(null)
 
   useEffect(() => {

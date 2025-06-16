@@ -1,7 +1,7 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import MailPreview from './MailPreview'
-import { GmailContext } from '../hooks/GmailContextValue'
-import type { Mail } from '../hooks/GmailContextValue'
+import { useGmail } from '../hooks/useGmail'
+import { Mail } from '../hooks/GmailContextValue'
 
 interface MailWindowProps {
   selectedMail: Mail | null
@@ -12,13 +12,10 @@ export default function MailWindow({
   selectedMail,
   setSelectedMail
 }: MailWindowProps): React.ReactElement {
-  const { unansweredMails = [], loading } = useContext(GmailContext) ?? {
-    unansweredMails: [],
-    loading: false
-  }
+  const { unansweredMails, loading } = useGmail()
 
   return (
-    <div className="pr-3 pl-10 py-10 h-full bg-orange-50 flex gap-8">
+    <div className="pr-3 pl-10 py-10 h-full flex gap-8">
       <ul className="flex flex-col gap-3">
         {Array.isArray(unansweredMails) && unansweredMails.length > 0 ? (
           unansweredMails.map((m) => (

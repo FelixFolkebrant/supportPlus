@@ -32,12 +32,14 @@ ipcMain.handle('gmail:logout', async () => {
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
     show: false,
     autoHideMenuBar: true,
     resizable: true, // Allow window to be resizable
     fullscreenable: true, // Allow fullscreen mode
+    fullscreen: false, // Not true, so not native fullscreen
+    frame: true, // Show window frame like a normal browser
+    width: 1280, // Typical browser window size
+    height: 800,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -46,6 +48,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
+    mainWindow.maximize() // Maximize to fill the screen but keep window frame
     mainWindow.show()
   })
 

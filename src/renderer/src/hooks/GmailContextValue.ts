@@ -5,6 +5,7 @@ export type Mail = {
   subject?: string
   from?: string
   snippet?: string
+  body?: string
 }
 
 export interface GmailContextType {

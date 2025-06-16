@@ -21,7 +21,7 @@ export function ChatMessageBubble({ msg, personality }: ChatMessageProps): React
           boxShadow: 'none',
           fontSize: 16,
           maxWidth: '80%',
-          wordBreak: 'break-word',
+          wordBreak: 'break-word'
         }}
       >
         <b>{msg.role === 'user' ? 'You' : personality.name}:</b> {msg.content}

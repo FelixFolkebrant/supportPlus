@@ -39,9 +39,9 @@ const SvgMailShape: React.FC<SvgMailShapeProps> = ({ className, style, children,
     // Fast when activating, slower when deactivating
     const totalFrames = active ? 10 : 20
     // Cubic ease in-out
-    const easeInOutCubic = (t: number) =>
+    const easeInOutCubic = (t: number): number =>
       t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-    function animate() {
+    function animate(): void {
       frame++
       const t = frame / totalFrames
       setAnimatedPath(interpolator(easeInOutCubic(Math.min(t, 1))))
@@ -53,7 +53,6 @@ const SvgMailShape: React.FC<SvgMailShapeProps> = ({ className, style, children,
     }
     animate()
     prevActive.current = active
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
   const fill = active ? '#E6EAFA' : '#f9f9f9'

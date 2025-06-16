@@ -7,10 +7,13 @@
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint --cache .",
+    "lint:fix": "eslint --cache . --fix",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "clean": "rimraf dist out .eslintcache",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",

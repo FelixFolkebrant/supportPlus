@@ -11,8 +11,8 @@ export function ChatInput({ value, onChange, onSend, loading }: ChatInputProps):
       <input
         className="flex-1 px-2 py-2 text-base outline-none"
         value={value}
-        onChange={e => onChange(e.target.value)}
-        onKeyDown={e => {
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
           if (e.key === 'Enter' && !loading) onSend()
         }}
         placeholder="Type your message..."
