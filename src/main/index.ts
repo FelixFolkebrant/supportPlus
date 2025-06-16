@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import './google/auth'
 import { getEmails } from './google/getEmails'
 import { getUnansweredEmails } from './google/getUnansweredEmails'
+import { getGmailClient, hasValidToken, logout as gmailLogout } from './google/auth'
 
 ipcMain.handle('gmail:getMails', async (_event, args) => {
   return await getEmails(args)
@@ -12,6 +13,20 @@ ipcMain.handle('gmail:getMails', async (_event, args) => {
 
 ipcMain.handle('gmail:getUnansweredMails', async (_event, args) => {
   return await getUnansweredEmails(args)
+})
+
+ipcMain.handle('gmail:login', async () => {
+  await getGmailClient()
+  return true
+})
+
+ipcMain.handle('gmail:hasValidToken', async () => {
+  return await hasValidToken()
+})
+
+ipcMain.handle('gmail:logout', async () => {
+  await gmailLogout()
+  return true
 })
 
 function createWindow(): void {

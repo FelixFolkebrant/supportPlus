@@ -18,7 +18,7 @@ export default function MailWindow({
   }
 
   return (
-    <div className="pr-3 pl-10 h-full bg-orange-50 flex gap-8">
+    <div className="pr-3 pl-10 py-10 h-full bg-orange-50 flex gap-8">
       <ul className="flex flex-col gap-3">
         {Array.isArray(unansweredMails) && unansweredMails.length > 0 ? (
           unansweredMails.map((m) => (

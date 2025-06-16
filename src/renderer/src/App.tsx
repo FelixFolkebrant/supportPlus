@@ -2,10 +2,22 @@ import { useState, useEffect, useContext } from 'react'
 import { GmailProvider, GmailContext } from './hooks/GmailContext'
 import MailWindow from './components/MailWindow'
 import FullMail from './components/FullMail'
+import LoadingScreen from './components/LoadingScreen'
+import LoginScreen from './components/LoginScreen'
 import type { Mail } from './hooks/GmailContext'
+import type React from 'react'
 
-function MailAppContent() {
-  const { unansweredMails } = useContext(GmailContext) ?? { unansweredMails: [] }
+function MailAppContent(): React.JSX.Element {
+  const { unansweredMails, loading, needsLogin, login, loginInProgress, logout } = useContext(
+    GmailContext
+  ) ?? {
+    unansweredMails: [],
+    loading: false,
+    needsLogin: false,
+    login: () => {},
+    loginInProgress: false,
+    logout: () => {}
+  }
   const [selectedMail, setSelectedMail] = useState<Mail | null>(null)
 
   useEffect(() => {
@@ -22,10 +34,24 @@ function MailAppContent() {
     }
   }, [unansweredMails])
 
+  if (loading) return <LoadingScreen />
+  if (needsLogin) return <LoginScreen onLogin={login} loginInProgress={loginInProgress} />
+
   return (
-    <div className="flex h-screen w-screen gap-8">
-      <MailWindow selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
-      {selectedMail ? <FullMail {...selectedMail} /> : null}
+    <div className="flex-col h-screen w-screen">
+      <div className="flex h-14 items-center justify-between bg-blue-500 text-white text-xl font-bold px-8">
+        <span>Navbar?</span>
+        <button
+          className="px-4 py-2 bg-white text-blue-500 rounded hover:bg-blue-100 font-semibold text-base"
+          onClick={logout}
+        >
+          Log out
+        </button>
+      </div>
+      <div className="flex h-full w-full">
+        <MailWindow selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
+        {selectedMail ? <FullMail {...selectedMail} /> : null}
+      </div>
     </div>
   )
 }

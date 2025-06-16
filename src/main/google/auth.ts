@@ -25,6 +25,31 @@ function createPkce() {
   return { codeVerifier, codeChallenge }
 }
 
+import express from 'express'
+import { createServer, Server } from 'http'
+
+async function getRedirectUriAndServer(): Promise<{
+  redirectUri: string
+  server: Server
+  appServer: express.Express
+}> {
+  const appServer = express()
+  const server = createServer(appServer)
+  await new Promise<void>((ok) => server.listen(0, ok))
+  const { port } = server.address() as { port: number }
+  return { redirectUri: `http://127.0.0.1:${port}`, server, appServer }
+}
+
+async function waitForCode(server: Server, appServer: express.Express): Promise<string> {
+  return await new Promise((resolve) => {
+    appServer.get('/', (req, res) => {
+      res.send('<h3>You may now close this window.</h3>')
+      resolve(req.query.code as string)
+      setImmediate(() => server.close())
+    })
+  })
+}
+
 export async function getGmailClient(scopes: string[] = SCOPES): Promise<gmail_v1.Gmail> {
   const credsPath = path.join(app.getAppPath(), 'credentials.json')
   const {
@@ -36,12 +61,21 @@ export async function getGmailClient(scopes: string[] = SCOPES): Promise<gmail_v
   const raw = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME)
   if (raw) {
     client.setCredentials(JSON.parse(raw) as SavedTokens)
-    await client.getAccessToken()
-    return google.gmail({ version: 'v1', auth: client })
+    try {
+      await client.getAccessToken()
+      return google.gmail({ version: 'v1', auth: client })
+    } catch (err: any) {
+      if (err && err.message && err.message.includes('invalid_grant')) {
+        // Token is invalid, clear and continue to login flow
+        await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME)
+      } else {
+        throw err
+      }
+    }
   }
 
+  const { redirectUri, server, appServer } = await getRedirectUriAndServer()
   const { codeVerifier, codeChallenge } = createPkce()
-  const redirectUri = await getRedirectUri()
   const authUrl = client.generateAuthUrl({
     access_type: 'offline',
     scope: scopes,
@@ -51,33 +85,22 @@ export async function getGmailClient(scopes: string[] = SCOPES): Promise<gmail_v
     prompt: 'consent'
   })
   await shell.openExternal(authUrl)
-  const code: string = await waitForCode(redirectUri)
+  const code: string = await waitForCode(server, appServer)
   const { tokens } = await client.getToken({ code, codeVerifier, redirect_uri: redirectUri })
   client.setCredentials(tokens)
   await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, JSON.stringify(tokens))
   return google.gmail({ version: 'v1', auth: client })
 }
 
-// Helper for PKCE redirect
-import express from 'express'
-import { createServer } from 'http'
-async function getRedirectUri(): Promise<string> {
-  const appServer = express()
-  const server = createServer(appServer)
-  await new Promise<void>((ok) => server.listen(0, ok))
-  const { port } = server.address() as any
-  return `http://127.0.0.1:${port}`
+export async function hasValidToken(): Promise<boolean> {
+  const raw = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME)
+  if (!raw) return false
+  const tokens = JSON.parse(raw) as SavedTokens
+  // Check expiry (Google tokens are in ms)
+  if (!tokens.expiry_date || tokens.expiry_date < Date.now()) return false
+  return true
 }
-async function waitForCode(redirectUri: string): Promise<string> {
-  const port = Number(redirectUri.split(':').pop())
-  const appServer = express()
-  const server = createServer(appServer)
-  await new Promise<void>((ok) => server.listen(port, ok))
-  return await new Promise((resolve) => {
-    appServer.get('/', (req, res) => {
-      res.send('<h3>You may now close this window.</h3>')
-      resolve(req.query.code as string)
-      setImmediate(() => server.close())
-    })
-  })
+
+export async function logout(): Promise<void> {
+  await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME)
 }
