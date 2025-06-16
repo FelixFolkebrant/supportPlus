@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from 'react'
-import { GmailProvider, GmailContext } from './hooks/GmailContext'
+import { GmailProvider } from './hooks/GmailContext'
 import MailWindow from './components/MailWindow'
 import FullMail from './components/FullMail'
 import LoadingScreen from './components/LoadingScreen'
 import LoginScreen from './components/LoginScreen'
-import type { Mail } from './hooks/GmailContext'
+import type { Mail } from './hooks/GmailContextValue'
+import { GmailContext } from './hooks/GmailContextValue'
 import type React from 'react'
 
 function MailAppContent(): React.JSX.Element {

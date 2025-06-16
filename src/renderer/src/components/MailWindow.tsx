@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import MailPreview from './MailPreview'
-import { GmailContext } from '../hooks/GmailContext'
-import type { Mail } from '../hooks/GmailContext'
+import { GmailContext } from '../hooks/GmailContextValue'
+import type { Mail } from '../hooks/GmailContextValue'
 
 interface MailWindowProps {
   selectedMail: Mail | null

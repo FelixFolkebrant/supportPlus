@@ -18,7 +18,7 @@ interface SavedTokens {
   token_type: string
 }
 
-function createPkce() {
+function createPkce(): { codeVerifier: string; codeChallenge: string } {
   const codeVerifier = crypto.randomBytes(32).toString('base64url')
   const hash = crypto.createHash('sha256').update(codeVerifier).digest()
   const codeChallenge = hash.toString('base64url')
@@ -64,8 +64,8 @@ export async function getGmailClient(scopes: string[] = SCOPES): Promise<gmail_v
     try {
       await client.getAccessToken()
       return google.gmail({ version: 'v1', auth: client })
-    } catch (err: any) {
-      if (err && err.message && err.message.includes('invalid_grant')) {
+    } catch (err) {
+      if (err instanceof Error && err.message && err.message.includes('invalid_grant')) {
         // Token is invalid, clear and continue to login flow
         await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME)
       } else {
@@ -80,7 +80,8 @@ export async function getGmailClient(scopes: string[] = SCOPES): Promise<gmail_v
     access_type: 'offline',
     scope: scopes,
     code_challenge: codeChallenge,
-    code_challenge_method: 'S256',
+    // @ts-ignore code_challenge_method needs to be S256 but is not defined in types
+    code_challenge_method: 'S256', // Needs to be S256
     redirect_uri: redirectUri,
     prompt: 'consent'
   })
