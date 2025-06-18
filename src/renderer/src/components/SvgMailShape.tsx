@@ -13,6 +13,7 @@ interface SvgMailShapeProps {
  * Fills its container and allows content overlay via children.
  * Supports morphing between a square and the mail shape using shapeKey (0 to 1).
  */
+
 const SQUARE_PATH = `M0 20
 C0 8.95431 8.9543 0 20 0
 H548
