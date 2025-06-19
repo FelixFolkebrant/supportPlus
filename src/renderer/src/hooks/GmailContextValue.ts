@@ -6,6 +6,7 @@ export type Mail = {
   from?: string
   snippet?: string
   body?: string
+  isHtml?: boolean
 }
 
 export interface GmailContextType {

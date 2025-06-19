@@ -5,26 +5,45 @@ function header(msg: gmail_v1.Schema$Message, name: string): string {
   return msg.payload?.headers?.find((h) => h.name === name)?.value ?? ''
 }
 
-function getBody(msg: gmail_v1.Schema$Message): string {
-  if (!msg.payload) return ''
+function getBody(msg: gmail_v1.Schema$Message): { content: string; isHtml: boolean } {
+  if (!msg.payload) return { content: '', isHtml: false }
+
   // Prefer plain text part
   if (msg.payload.parts) {
     for (const part of msg.payload.parts) {
       if (part.mimeType === 'text/plain' && part.body?.data) {
-        return Buffer.from(part.body.data, 'base64').toString('utf-8')
+        return {
+          content: Buffer.from(part.body.data, 'base64').toString('utf-8'),
+          isHtml: false
+        }
+      }
+    }
+    // fallback to HTML part
+    for (const part of msg.payload.parts) {
+      if (part.mimeType === 'text/html' && part.body?.data) {
+        return {
+          content: Buffer.from(part.body.data, 'base64').toString('utf-8'),
+          isHtml: true
+        }
       }
     }
     // fallback to any part with data
     for (const part of msg.payload.parts) {
       if (part.body?.data) {
-        return Buffer.from(part.body.data, 'base64').toString('utf-8')
+        return {
+          content: Buffer.from(part.body.data, 'base64').toString('utf-8'),
+          isHtml: part.mimeType === 'text/html'
+        }
       }
     }
   }
   if (msg.payload.body?.data) {
-    return Buffer.from(msg.payload.body.data, 'base64').toString('utf-8')
+    return {
+      content: Buffer.from(msg.payload.body.data, 'base64').toString('utf-8'),
+      isHtml: msg.payload.mimeType === 'text/html'
+    }
   }
-  return ''
+  return { content: '', isHtml: false }
 }
 
 async function getMyEmail(gmail: gmail_v1.Gmail): Promise<string> {
@@ -44,7 +63,14 @@ export async function getUnansweredEmails({
   labelIds?: string[]
   query?: string
 } = {}): Promise<
-  Array<{ id?: string; subject?: string; from?: string; snippet?: string; body?: string }>
+  Array<{
+    id?: string
+    subject?: string
+    from?: string
+    snippet?: string
+    body?: string
+    isHtml?: boolean
+  }>
 > {
   const gmail = await getGmailClient()
   const myEmail = await getMyEmail(gmail)
@@ -63,6 +89,7 @@ export async function getUnansweredEmails({
     from?: string
     snippet?: string
     body?: string
+    isHtml?: boolean
   }> = []
 
   for (const msgMeta of data.messages) {
@@ -86,12 +113,14 @@ export async function getUnansweredEmails({
 
     // If the last message is NOT from me, include it
     if (!lastFrom.includes(myEmail)) {
+      const bodyData = getBody(lastMsg)
       unanswered.push({
         id: lastMsg.id ?? undefined,
         subject: header(lastMsg, 'Subject'),
         from: header(lastMsg, 'From'),
         snippet: lastMsg.snippet ?? undefined,
-        body: getBody(lastMsg)
+        body: bodyData.content,
+        isHtml: bodyData.isHtml
       })
     }
     threadsChecked.add(msgMeta.threadId)
