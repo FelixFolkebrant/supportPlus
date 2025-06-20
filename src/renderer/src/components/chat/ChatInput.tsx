@@ -1,3 +1,5 @@
+import { SendHorizontal } from 'lucide-react'
+
 type ChatInputProps = {
   value: string
   onChange: (v: string) => void
@@ -7,7 +9,7 @@ type ChatInputProps = {
 
 export function ChatInput({ value, onChange, onSend, loading }: ChatInputProps): React.JSX.Element {
   return (
-    <div className="flex gap-2 mt-2">
+    <div className="flex px-2 gap-2 border border-black rounded-full mt-2">
       <input
         className="flex-1 px-2 py-2 text-base outline-none"
         value={value}
@@ -21,11 +23,10 @@ export function ChatInput({ value, onChange, onSend, loading }: ChatInputProps):
       />
       <button
         className="px-4 py-2 text-white rounded"
-        style={{ background: '#19c37d', border: 'none' }}
         onClick={onSend}
         disabled={loading || !value.trim()}
       >
-        Send
+        <SendHorizontal stroke="black" />
       </button>
     </div>
   )

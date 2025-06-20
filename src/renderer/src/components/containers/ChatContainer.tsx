@@ -12,7 +12,11 @@ export function ChatContainer({ selectedMail }: ChatContainerProps): React.JSX.E
   const { messages, input, setInput, loading, sendMessage } = useChat(selectedMail)
 
   return (
-    <div className="flex-none w-[500px] border-l border-gray-200 bg-white text-black h-full flex flex-col relative">
+    <div className="flex-none w-full border-l border-gray-200 bg-white text-black h-full flex flex-col relative">
+      {/* Chat Header */}
+      <div className="h-14 flex items-center px-4 bg-white font-semibold text-lg sticky top-0 z-10">
+        Chat
+      </div>
       <div className="flex-1 overflow-y-auto pb-20 p-4">
         <ChatWindow messages={messages} loading={loading} />
       </div>

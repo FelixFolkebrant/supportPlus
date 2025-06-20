@@ -33,6 +33,7 @@
     "google-auth-library": "^10.0.0-rc.3",
     "googleapis": "^150.0.1",
     "keytar": "^7.9.0",
+    "lucide-react": "^0.518.0",
     "open": "^10.1.2",
     "react-markdown": "^10.1.0"
   },
