@@ -1,12 +1,13 @@
 import { ReactNode, useEffect, useState } from 'react'
 import type React from 'react'
-import { GmailContext, Mail } from './GmailContextValue'
+import { GmailContext, Mail, UserProfile } from './GmailContextValue'
 
 const { ipcRenderer } = window.electron // exposed via contextBridge
 
 export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.Element => {
   const [mails, setMails] = useState<Mail[]>([])
   const [unansweredMails, setUnansweredMails] = useState<Mail[]>([])
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [needsLogin, setNeedsLogin] = useState<boolean>(false)
   const [loginInProgress, setLoginInProgress] = useState<boolean>(false)
@@ -20,11 +21,13 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         maxResults: 3,
         labelIds: ['INBOX'],
         query: 'category:primary is:unread'
-      })
+      }),
+      ipcRenderer.invoke('gmail:getUserProfile')
     ])
-      .then(([allData, unansweredData]) => {
+      .then(([allData, unansweredData, profileData]) => {
         setMails(allData as Mail[])
         setUnansweredMails(unansweredData as Mail[])
+        setUserProfile(profileData as UserProfile)
       })
       .catch((err) => {
         if (err && err.message && err.message.includes('invalid_grant')) {
@@ -54,6 +57,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
       setNeedsLogin(true)
       setMails([])
       setUnansweredMails([])
+      setUserProfile(null)
     })
   }
 
@@ -72,6 +76,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
       value={{
         mails,
         unansweredMails,
+        userProfile,
         loading,
         needsLogin,
         loginInProgress,

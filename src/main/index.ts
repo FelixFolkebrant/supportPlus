@@ -6,6 +6,7 @@ import './google/auth'
 import { getEmails } from './google/getEmails'
 import { getUnansweredEmails } from './google/getUnansweredEmails'
 import { getGmailClient, hasValidToken, logout as gmailLogout } from './google/auth'
+import { getUserProfile } from './google/getUserProfile'
 
 ipcMain.handle('gmail:getMails', async (_event, args) => {
   return await getEmails(args)
@@ -27,6 +28,10 @@ ipcMain.handle('gmail:hasValidToken', async () => {
 ipcMain.handle('gmail:logout', async () => {
   await gmailLogout()
   return true
+})
+
+ipcMain.handle('gmail:getUserProfile', async () => {
+  return await getUserProfile()
 })
 
 function createWindow(): void {

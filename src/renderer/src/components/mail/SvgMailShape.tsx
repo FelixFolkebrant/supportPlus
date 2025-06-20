@@ -56,7 +56,7 @@ const SvgMailShape: React.FC<SvgMailShapeProps> = ({ className, style, children,
     prevActive.current = active
   }, [active])
 
-  const fill = active ? '#E6EAFA' : '#f9f9f9'
+  const fill = active ? '#E6EAFA' : '#f9fafb'
 
   return (
     <svg

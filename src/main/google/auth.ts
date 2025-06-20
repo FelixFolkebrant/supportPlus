@@ -6,7 +6,11 @@ import path from 'path'
 import crypto from 'node:crypto'
 import { app, shell } from 'electron'
 
-const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+const SCOPES = [
+  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/userinfo.email'
+]
 const SERVICE_NAME = 'MyElectronMail'
 const ACCOUNT_NAME = 'tokens'
 

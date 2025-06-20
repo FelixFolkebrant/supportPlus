@@ -9,9 +9,16 @@ export type Mail = {
   isHtml?: boolean
 }
 
+export interface UserProfile {
+  name: string
+  email: string
+  picture: string
+}
+
 export interface GmailContextType {
   mails: Mail[]
   unansweredMails: Mail[]
+  userProfile: UserProfile | null
   loading: boolean
   needsLogin: boolean
   loginInProgress: boolean
