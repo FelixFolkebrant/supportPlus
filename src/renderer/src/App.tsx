@@ -11,7 +11,7 @@ import { ChatWindow } from './components/chat/ChatWindow'
 import { ChatInput } from './components/chat/ChatInput'
 import { PersonalitySelector } from './components/chat/PersonalitySelector'
 import { PERSONALITIES, Personality } from './api/personalities'
-import { ChatMessage } from './api/chat'
+import { ChatMessage, chatWithOpenAI } from './api/chat'
 
 function MailAppContent(): React.JSX.Element {
   const { unansweredMails, loading, needsLogin, login, loginInProgress, logout } = useGmail()
@@ -19,6 +19,7 @@ function MailAppContent(): React.JSX.Element {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState('')
   const [personality, setPersonality] = useState<Personality>(PERSONALITIES[0])
+  const [chatLoading, setChatLoading] = useState(false)
 
   useEffect(() => {
     if (unansweredMails.length > 0) {
@@ -34,11 +35,40 @@ function MailAppContent(): React.JSX.Element {
     }
   }, [unansweredMails])
 
-  const handleSend = (): void => {
-    if (!chatInput.trim()) return
-    setChatMessages((msgs) => [...msgs, { role: 'user', content: chatInput }])
+  const handleSend = async (): Promise<void> => {
+    if (!chatInput.trim() || chatLoading) return
+    
+    const userMessage: ChatMessage = { role: 'user', content: chatInput }
+    const newMessages = [...chatMessages, userMessage]
+    setChatMessages(newMessages)
     setChatInput('')
-    // Here you would trigger the OpenAI API and update chatMessages with the assistant's reply
+    setChatLoading(true)
+
+    try {
+      // Create assistant message with empty content to start streaming
+      const assistantMessage: ChatMessage = { role: 'assistant', content: '' }
+      setChatMessages([...newMessages, assistantMessage])
+
+      await chatWithOpenAI(newMessages, personality, (token: string) => {
+        setChatMessages((prevMessages) => {
+          const updatedMessages = [...prevMessages]
+          const lastMessage = updatedMessages[updatedMessages.length - 1]
+          if (lastMessage && lastMessage.role === 'assistant') {
+            lastMessage.content += token
+          }
+          return updatedMessages
+        })
+      })
+    } catch (error) {
+      console.error('Chat API error:', error)
+      // Optionally add an error message to chat
+      setChatMessages((prevMessages) => [
+        ...prevMessages.slice(0, -1), // Remove the empty assistant message
+        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }
+      ])
+    } finally {
+      setChatLoading(false)
+    }
   }
 
   if (loading) return <LoadingScreen />
@@ -70,12 +100,12 @@ function MailAppContent(): React.JSX.Element {
         {/* Right: Chat panel fixed width */}
         <div className="flex-none w-[400px] border-l border-gray-200 bg-red-500 h-full p-4 overflow-y-auto">
           <PersonalitySelector current={personality} onChange={setPersonality} />
-          <ChatWindow messages={chatMessages} personality={personality} loading={false} />
+          <ChatWindow messages={chatMessages} personality={personality} loading={chatLoading} />
           <ChatInput
             value={chatInput}
             onChange={setChatInput}
             onSend={handleSend}
-            loading={false}
+            loading={chatLoading}
           />
         </div>
       </div>
