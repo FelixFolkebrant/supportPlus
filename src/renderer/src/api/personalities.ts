@@ -4,20 +4,10 @@ export type Personality = {
   systemPrompt: string
 }
 
-export const PERSONALITIES: Personality[] = [
-  {
-    id: 'default',
-    name: 'Default Assistant',
-    systemPrompt: 'You are a helpful assistant.'
-  },
-  {
-    id: 'horror',
-    name: 'Horror Storyteller',
-    systemPrompt: 'You are a master of horror stories. Respond in a chilling, suspenseful style.'
-  },
-  {
-    id: 'friendly',
-    name: 'Friendly Buddy',
-    systemPrompt: 'You are a friendly and supportive companion.'
-  }
-]
+export const DEFAULT_PERSONALITY: Personality = {
+  id: 'default',
+  name: 'Default Assistant',
+  systemPrompt: 'You are a helpful assistant.'
+}
+
+export const PERSONALITIES: Personality[] = [DEFAULT_PERSONALITY]

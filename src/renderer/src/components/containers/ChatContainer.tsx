@@ -1,17 +1,24 @@
 import type React from 'react'
 import { ChatWindow } from '../chat/ChatWindow'
 import { ChatInput } from '../chat/ChatInput'
-import { PersonalitySelector } from '../chat/PersonalitySelector'
 import { useChat } from '../../hooks/useChat'
+import type { Mail } from '../../hooks/GmailContextValue'
 
-export function ChatContainer(): React.JSX.Element {
-  const { messages, input, setInput, personality, setPersonality, loading, sendMessage } = useChat()
+interface ChatContainerProps {
+  selectedMail: Mail | null
+}
+
+export function ChatContainer({ selectedMail }: ChatContainerProps): React.JSX.Element {
+  const { messages, input, setInput, loading, sendMessage } = useChat(selectedMail)
 
   return (
-    <div className="flex-none w-[400px] border-l border-gray-200 bg-red-500 h-full p-4 overflow-y-auto">
-      <PersonalitySelector current={personality} onChange={setPersonality} />
-      <ChatWindow messages={messages} personality={personality} loading={loading} />
-      <ChatInput value={input} onChange={setInput} onSend={sendMessage} loading={loading} />
+    <div className="flex-none w-[500px] border-l border-gray-200 bg-white text-black h-full flex flex-col relative">
+      <div className="flex-1 overflow-y-auto pb-20 p-4">
+        <ChatWindow messages={messages} loading={loading} />
+      </div>
+      <div className="w-full absolute left-0 right-0 bottom-0 px-4 pb-4 bg-white">
+        <ChatInput value={input} onChange={setInput} onSend={sendMessage} loading={loading} />
+      </div>
     </div>
   )
 }

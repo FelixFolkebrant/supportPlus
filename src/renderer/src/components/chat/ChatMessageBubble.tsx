@@ -1,16 +1,15 @@
 import { ChatMessage } from '../../api/chat'
-import { Personality } from '../../api/personalities'
+import ReactMarkdown from 'react-markdown'
 
 type ChatMessageProps = {
   msg: ChatMessage
-  personality: Personality
 }
 
-export function ChatMessageBubble({ msg, personality }: ChatMessageProps): React.JSX.Element {
+export function ChatMessageBubble({ msg }: ChatMessageProps): React.JSX.Element {
   return (
     <div className={msg.role === 'user' ? 'text-right' : 'text-left'}>
       <span
-        className={msg.role === 'user' ? 'text-white' : 'text-white'}
+        className={msg.role === 'user' ? 'text-black' : 'text-black'}
         style={{
           display: 'inline-block',
           borderRadius: 8,
@@ -24,7 +23,8 @@ export function ChatMessageBubble({ msg, personality }: ChatMessageProps): React
           wordBreak: 'break-word'
         }}
       >
-        <b>{msg.role === 'user' ? 'You' : personality.name}:</b> {msg.content}
+        <b>{msg.role === 'user' ? 'You' : 'Assistant'}:</b>{' '}
+        {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : msg.content}
       </span>
     </div>
   )

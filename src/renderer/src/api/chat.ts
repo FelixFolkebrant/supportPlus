@@ -1,7 +1,7 @@
 import { Personality } from '../api/personalities'
 
 export type ChatMessage = {
-  role: 'user' | 'assistant'
+  role: 'user' | 'assistant' | 'system'
   content: string
 }
 
