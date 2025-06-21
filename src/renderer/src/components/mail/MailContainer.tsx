@@ -4,15 +4,37 @@ import FullMail from './FullMail'
 import { ResponseMail } from './ResponseMail'
 import type { Mail } from '../../hooks/GmailContextValue'
 
+// Extend Window interface for our global function
+declare global {
+  interface Window {
+    responseMailUpdate?: (mailId: string, content: string) => void
+  }
+}
+
 interface MailContainerProps {
   selectedMail: Mail | null
   setSelectedMail: (mail: Mail | null) => void
+  onUpdateResponseMail?: (mailId: string, content: string) => void
+  onRegisterMailEditingState?: (setEditingState: (isEditing: boolean) => void) => void
 }
 
 export function MailContainer({
   selectedMail,
-  setSelectedMail
+  setSelectedMail,
+  onUpdateResponseMail,
+  onRegisterMailEditingState
 }: MailContainerProps): React.JSX.Element {
+  const handleRegisterUpdate = (updateFn: (mailId: string, content: string) => void): void => {
+    // Store this update function globally so the chat can call it
+    window.responseMailUpdate = updateFn
+  }
+
+  const handleRegisterEditingState = (setEditingState: (isEditing: boolean) => void): void => {
+    // Register this with the parent so it can be passed to chat
+    if (onRegisterMailEditingState) {
+      onRegisterMailEditingState(setEditingState)
+    }
+  }
   return (
     <div className="flex h-full w-full">
       {/* Left: MailWindow grows to content */}
@@ -25,7 +47,11 @@ export function MailContainer({
         {selectedMail ? (
           <>
             <FullMail {...selectedMail} />
-            <ResponseMail mail={selectedMail} />
+            <ResponseMail
+              mail={selectedMail}
+              onRegisterUpdate={handleRegisterUpdate}
+              onRegisterEditingState={handleRegisterEditingState}
+            />
           </>
         ) : null}
       </div>

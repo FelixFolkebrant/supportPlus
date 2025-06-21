@@ -4,12 +4,32 @@ import { ChatContainer } from '../containers/ChatContainer'
 import { useMailSelection } from '../../hooks/useMailSelection'
 import { useGmail } from '../../hooks/useGmail'
 
+// Extend Window interface for our global function
+declare global {
+  interface Window {
+    responseMailUpdate?: (mailId: string, content: string) => void
+  }
+}
+
 const MIN_CHAT_WIDTH = 500
 const MAX_CHAT_WIDTH = 800
 
 export function MainContent(): React.JSX.Element {
   const { unansweredMails } = useGmail()
   const { selectedMail, setSelectedMail } = useMailSelection(unansweredMails)
+  const [mailEditingState, setMailEditingState] = useState<(isEditing: boolean) => void>()
+
+  // Function to update response mail content (called by AI chat)
+  const updateResponseMail = (mailId: string, content: string): void => {
+    if (window.responseMailUpdate) {
+      window.responseMailUpdate(mailId, content)
+    }
+  }
+
+  // Function to register mail editing state callback
+  const handleRegisterMailEditingState = (setEditingState: (isEditing: boolean) => void): void => {
+    setMailEditingState(() => setEditingState)
+  }
 
   // State for chat panel width
   const [chatWidth, setChatWidth] = useState<number>(() => {
@@ -47,7 +67,12 @@ export function MainContent(): React.JSX.Element {
       className="flex pl-2 flex-1 h-[calc(100%-3.5rem)] w-full overflow-hidden"
     >
       <div className="flex-1 h-full min-w-0">
-        <MailContainer selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
+        <MailContainer
+          selectedMail={selectedMail}
+          setSelectedMail={setSelectedMail}
+          onUpdateResponseMail={updateResponseMail}
+          onRegisterMailEditingState={handleRegisterMailEditingState}
+        />
       </div>
       {/* Divider */}
       <div
@@ -64,7 +89,11 @@ export function MainContent(): React.JSX.Element {
         style={{ width: chatWidth, minWidth: MIN_CHAT_WIDTH, maxWidth: MAX_CHAT_WIDTH }}
         className="h-full flex-shrink-0"
       >
-        <ChatContainer selectedMail={selectedMail} />
+        <ChatContainer
+          selectedMail={selectedMail}
+          updateResponseMail={updateResponseMail}
+          setMailEditingState={mailEditingState}
+        />
       </div>
     </div>
   )
