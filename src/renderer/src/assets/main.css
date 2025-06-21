@@ -1,6 +1,5 @@
 @import './base.css';
 @import 'tailwindcss';
-@import './inter-font.css';
 @theme {
   --color-primary: #3059ff;
   --color-secondary: #45474b;
@@ -20,6 +19,8 @@ body {
     'Noto Sans',
     sans-serif;
   background: transparent !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 body {
   display: flex;
@@ -29,6 +30,8 @@ body {
   background-image: url('./wavy-lines.svg');
   background-size: cover;
   user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 code {

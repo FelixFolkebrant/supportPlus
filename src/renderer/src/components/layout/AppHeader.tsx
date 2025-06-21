@@ -57,7 +57,9 @@ export function AppHeader({
 
   return (
     <div className="flex h-14 items-center justify-between bg-white text-black text-xl font-bold">
-      <Logo className="h-full" />
+      <div className="h-full flex items-stretch">
+        <Logo className="h-full w-auto" />
+      </div>
       <div className="relative pr-4" ref={dropdownRef}>
         <button
           onClick={toggleDropdown}
@@ -65,15 +67,17 @@ export function AppHeader({
         >
           <span className="text-base font-normal">{userName}</span>
           <div className="relative w-8 h-8">
-            <img
-              src={profilePicUrl}
-              alt="Profile"
-              className="w-8 h-8 rounded-full border-2 border-white object-cover"
-              onError={handleImageError}
-            />
+            {profilePicUrl ? (
+              <img
+                src={profilePicUrl}
+                alt="Profile"
+                className="w-8 h-8 rounded-full border-2 border-white object-cover"
+                onError={handleImageError}
+              />
+            ) : null}
             <div
               className="w-8 h-8 rounded-full border-2 border-white bg-blue-600 items-center justify-center text-xs font-semibold"
-              style={{ display: 'none' }}
+              style={{ display: profilePicUrl ? 'none' : 'flex' }}
             >
               {getInitials(userName)}
             </div>
