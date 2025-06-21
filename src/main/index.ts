@@ -7,6 +7,7 @@ import { getEmails } from './google/getEmails'
 import { getUnansweredEmails } from './google/getUnansweredEmails'
 import { getGmailClient, hasValidToken, logout as gmailLogout } from './google/auth'
 import { getUserProfile } from './google/getUserProfile'
+import { setupDriveHandlers } from './google/drive'
 
 ipcMain.handle('gmail:getMails', async (_event, args) => {
   return await getEmails(args)
@@ -75,6 +76,9 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  // Setup Drive handlers
+  setupDriveHandlers()
+  
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -87,7 +91,6 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
-
   createWindow()
 
   app.on('activate', function () {

@@ -1,5 +1,5 @@
 import { OAuth2Client } from 'google-auth-library'
-import { google, gmail_v1 } from 'googleapis'
+import { google, gmail_v1, drive_v3 } from 'googleapis'
 import keytar from 'keytar'
 import fs from 'fs/promises'
 import path from 'path'
@@ -9,7 +9,8 @@ import { app, shell } from 'electron'
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/userinfo.profile',
-  'https://www.googleapis.com/auth/userinfo.email'
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/drive.readonly'
 ]
 const SERVICE_NAME = 'MyElectronMail'
 const ACCOUNT_NAME = 'tokens'
@@ -95,6 +96,50 @@ export async function getGmailClient(scopes: string[] = SCOPES): Promise<gmail_v
   client.setCredentials(tokens)
   await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, JSON.stringify(tokens))
   return google.gmail({ version: 'v1', auth: client })
+}
+
+export async function getDriveClient(scopes: string[] = SCOPES): Promise<drive_v3.Drive> {
+  const credsPath = path.join(app.getAppPath(), 'credentials.json')
+  const {
+    installed: { client_id, client_secret }
+  } = JSON.parse(await fs.readFile(credsPath, 'utf-8'))
+
+  const client = new OAuth2Client({ clientId: client_id, clientSecret: client_secret })
+
+  const raw = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME)
+  if (raw) {
+    client.setCredentials(JSON.parse(raw) as SavedTokens)
+    try {
+      await client.getAccessToken()
+      return google.drive({ version: 'v3', auth: client })
+    } catch (err) {
+      if (err instanceof Error && err.message && err.message.includes('invalid_grant')) {
+        // Token is invalid, clear and continue to login flow
+        await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME)
+      } else {
+        throw err
+      }
+    }
+  }
+
+  // If no token or invalid token, use the same login flow as Gmail
+  const { redirectUri, server, appServer } = await getRedirectUriAndServer()
+  const { codeVerifier, codeChallenge } = createPkce()
+  const authUrl = client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes,
+    code_challenge: codeChallenge,
+    // @ts-ignore code_challenge_method needs to be S256 but is not defined in types
+    code_challenge_method: 'S256', // Needs to be S256
+    redirect_uri: redirectUri,
+    prompt: 'consent'
+  })
+  await shell.openExternal(authUrl)
+  const code: string = await waitForCode(server, appServer)
+  const { tokens } = await client.getToken({ code, codeVerifier, redirect_uri: redirectUri })
+  client.setCredentials(tokens)
+  await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, JSON.stringify(tokens))
+  return google.drive({ version: 'v3', auth: client })
 }
 
 export async function hasValidToken(): Promise<boolean> {

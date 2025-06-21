@@ -1,5 +1,6 @@
 import React from 'react'
 import { GmailProvider } from './hooks/GmailContext'
+import { DriveProvider } from './hooks/DriveContext'
 import { AppLayout } from './components/layout'
 import LoadingScreen from './components/ui/LoadingScreen'
 import WelcomeScreen from './components/ui/WelcomeScreen'
@@ -17,7 +18,9 @@ function MailAppContent(): React.JSX.Element {
 function App(): React.JSX.Element {
   return (
     <GmailProvider>
-      <MailAppContent />
+      <DriveProvider>
+        <MailAppContent />
+      </DriveProvider>
     </GmailProvider>
   )
 }

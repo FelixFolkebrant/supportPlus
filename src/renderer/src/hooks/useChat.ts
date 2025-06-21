@@ -7,6 +7,7 @@ import {
 } from '../api/chat'
 import { DEFAULT_PERSONALITY } from '../api/personalities'
 import type { Mail } from './GmailContextValue'
+import { useDrive } from './DriveContext'
 
 interface UseChatReturn {
   messages: ChatMessage[]
@@ -26,6 +27,7 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
   const assistantContentRef = useRef('')
   const updateResponseMailRef = useRef<ResponseMailUpdateFunction | undefined>(undefined)
   const mailEditingStateRef = useRef<MailEditingStateFunction | undefined>(undefined)
+  const { selectedFiles } = useDrive()
 
   const setUpdateResponseMail = (fn: ResponseMailUpdateFunction): void => {
     updateResponseMailRef.current = fn
@@ -102,6 +104,23 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
       const assistantMessage: ChatMessage = { role: 'assistant', content: '' }
       setMessages((prev) => [...prev, assistantMessage])
       assistantContentRef.current = ''
+      // Prepare knowledge base context
+      let knowledgeContext = ''
+      if (selectedFiles.length > 0) {
+        knowledgeContext = `
+
+Knowledge Base Documents:
+${selectedFiles.map(file => 
+  `=== ${file.name} ===
+${file.content || '[Content could not be loaded]'}`
+).join('\n\n')}
+
+`
+      }
+
+      // Combine all contexts for enhanced prompt
+      const enhancedPrompt = `${input}${selectedMail?.subject || ''}${knowledgeContext}`
+
       await chatWithOpenAI(
         contextMessages,
         DEFAULT_PERSONALITY,
