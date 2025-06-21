@@ -7,6 +7,8 @@ import React, {
   useCallback
 } from 'react'
 import type { Mail } from '../../hooks/GmailContextValue'
+import { SendButton } from '../SendButton'
+import { useChat } from '../../hooks/useChat'
 
 interface ResponseMailRef {
   updateContent: (newContent: string) => void
@@ -31,6 +33,7 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
   const [formatVersion, setFormatVersion] = useState(0)
   const [localIsAiEditing, setLocalIsAiEditing] = useState(false)
   const editorRef = useRef<HTMLDivElement>(null)
+  const { sendReplyEmail, sendingReply } = useChat(mail)
 
   // Use prop isAiEditing if provided, otherwise use local state
   const isAiEditing = propIsAiEditing !== undefined ? propIsAiEditing : localIsAiEditing
@@ -107,6 +110,17 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
     return () => document.removeEventListener('selectionchange', handleSelectionChange)
   }, [])
 
+  // Helper to get current editor content as plain text
+  const getEditorText = () => {
+    return editorRef.current?.innerText?.trim() || ''
+  }
+
+  // Handler for send button
+  const handleSend = () => {
+    const html = editorRef.current?.innerHTML || ''
+    sendReplyEmail(html)
+  }
+
   return (
     <div className="p-4 border-t border-gray-200 text-black bg-gray-50">
       <h3 className="text-2xl font-bold text-secondary mb-2">{title}</h3>
@@ -178,7 +192,13 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
           </div>
         )}
       </div>
-      {/* You can add a send button or other actions here */}
+      <div className="flex justify-end mt-2">
+        <SendButton
+          onSend={handleSend}
+          disabled={isAiEditing || !getEditorText()}
+          loading={sendingReply}
+        />
+      </div>
     </div>
   )
 })

@@ -8,6 +8,7 @@ import { app, shell } from 'electron'
 
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/gmail.send',
   'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/userinfo.email',
   'https://www.googleapis.com/auth/drive.readonly'
@@ -153,4 +154,41 @@ export async function hasValidToken(): Promise<boolean> {
 
 export async function logout(): Promise<void> {
   await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME)
+}
+
+export async function sendReply(
+  threadId: string,
+  messageId: string,
+  to: string,
+  subject: string,
+  body: string
+): Promise<void> {
+  const gmail = await getGmailClient()
+
+  // Prepare the email message as HTML
+  const utf8Subject = Buffer.from(subject, 'utf-8').toString()
+  const messageParts = [
+    `To: ${to}`,
+    `Subject: ${utf8Subject}`,
+    `In-Reply-To: ${messageId}`,
+    `References: ${messageId}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    '',
+    body
+  ]
+
+  const message = messageParts.join('\n')
+  const encodedMessage = Buffer.from(message)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+
+  await gmail.users.messages.send({
+    userId: 'me',
+    requestBody: {
+      threadId,
+      raw: encodedMessage
+    }
+  })
 }

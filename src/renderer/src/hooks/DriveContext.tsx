@@ -62,7 +62,7 @@ export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.
         localStorage.removeItem(KNOWLEDGE_BASE_STORAGE_KEY)
       }
     }
-    
+
     loadSavedFolder()
   }, [])
 
@@ -95,10 +95,12 @@ export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.
     try {
       const filesWithContent = await Promise.all(
         files.map(async (file) => {
-          if (file.mimeType.includes('text') || 
-              file.mimeType.includes('document') || 
-              file.mimeType.includes('spreadsheet') ||
-              file.mimeType === 'application/pdf') {
+          if (
+            file.mimeType.includes('text') ||
+            file.mimeType.includes('document') ||
+            file.mimeType.includes('spreadsheet') ||
+            file.mimeType === 'application/pdf'
+          ) {
             try {
               const content = await ipcRenderer.invoke('drive:getFileContent', file.id)
               // Debug: Log file and content
@@ -112,7 +114,7 @@ export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.
           return file
         })
       )
-      setSelectedFiles(filesWithContent.filter(f => f.content))
+      setSelectedFiles(filesWithContent.filter((f) => f.content))
       // Debug: Log all selected files after loading
       console.log('All selected files after loading:', filesWithContent)
     } catch (err) {
@@ -122,7 +124,7 @@ export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.
 
   const refreshFiles = async (): Promise<void> => {
     if (!knowledgeBaseFolder) return
-    
+
     try {
       setLoading(true)
       setError(null)

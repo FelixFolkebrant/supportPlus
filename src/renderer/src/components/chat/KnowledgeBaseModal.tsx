@@ -8,17 +8,20 @@ interface KnowledgeBaseModalProps {
   onClose: () => void
 }
 
-export function KnowledgeBaseModal({ isOpen, onClose }: KnowledgeBaseModalProps): React.JSX.Element {
+export function KnowledgeBaseModal({
+  isOpen,
+  onClose
+}: KnowledgeBaseModalProps): React.JSX.Element {
   const [showFolderPicker, setShowFolderPicker] = useState(false)
-  
-  const { 
-    knowledgeBaseFolder, 
-    selectedFiles, 
-    loading, 
-    error, 
-    selectKnowledgeBaseFolder, 
+
+  const {
+    knowledgeBaseFolder,
+    selectedFiles,
+    loading,
+    error,
+    selectKnowledgeBaseFolder,
     clearKnowledgeBase,
-    refreshFiles 
+    refreshFiles
   } = useDrive()
 
   if (!isOpen) return <></>
@@ -29,12 +32,14 @@ export function KnowledgeBaseModal({ isOpen, onClose }: KnowledgeBaseModalProps)
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">Knowledge Base</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -50,13 +55,26 @@ export function KnowledgeBaseModal({ isOpen, onClose }: KnowledgeBaseModalProps)
           {!knowledgeBaseFolder ? (
             <div className="text-center py-8">
               <div className="mb-4">
-                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg
+                  className="w-16 h-16 mx-auto text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Knowledge Base Connected</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No Knowledge Base Connected
+              </h3>
               <p className="text-gray-600 mb-6">
-                Connect a Google Drive folder to give your chat access to documents, spreadsheets, and PDFs.
+                Connect a Google Drive folder to give your chat access to documents, spreadsheets,
+                and PDFs.
               </p>
               <button
                 onClick={() => setShowFolderPicker(true)}
@@ -131,8 +149,8 @@ export function KnowledgeBaseModal({ isOpen, onClose }: KnowledgeBaseModalProps)
           </button>
         </div>
       </div>
-      
-      <FolderPicker 
+
+      <FolderPicker
         isOpen={showFolderPicker}
         onClose={() => setShowFolderPicker(false)}
         onSelectFolder={(folder) => selectKnowledgeBaseFolder(folder.id)}

@@ -5,7 +5,7 @@ import icon from '../../resources/icon.png?asset'
 import './google/auth'
 import { getEmails } from './google/getEmails'
 import { getUnansweredEmails } from './google/getUnansweredEmails'
-import { getGmailClient, hasValidToken, logout as gmailLogout } from './google/auth'
+import { getGmailClient, hasValidToken, logout as gmailLogout, sendReply } from './google/auth'
 import { getUserProfile } from './google/getUserProfile'
 import { setupDriveHandlers } from './google/drive'
 
@@ -33,6 +33,10 @@ ipcMain.handle('gmail:logout', async () => {
 
 ipcMain.handle('gmail:getUserProfile', async () => {
   return await getUserProfile()
+})
+
+ipcMain.handle('gmail:sendReply', async (_event, { threadId, messageId, to, subject, body }) => {
+  return await sendReply(threadId, messageId, to, subject, body)
 })
 
 function createWindow(): void {
@@ -78,7 +82,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   // Setup Drive handlers
   setupDriveHandlers()
-  
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 

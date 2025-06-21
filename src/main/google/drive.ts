@@ -21,7 +21,7 @@ export function setupDriveHandlers(): void {
   ipcMain.handle('drive:listFolders', async () => {
     try {
       const drive = await getDriveClient()
-      
+
       const foldersResponse = await drive.files.list({
         q: "mimeType='application/vnd.google-apps.folder' and 'me' in owners and trashed=false",
         fields: 'files(id, name)',
@@ -43,9 +43,9 @@ export function setupDriveHandlers(): void {
   ipcMain.handle('drive:selectFolder', async (_, folderId?: string) => {
     try {
       const drive = await getDriveClient()
-      
+
       let selectedFolderId: string
-      
+
       if (folderId) {
         selectedFolderId = folderId
       } else {
@@ -98,7 +98,7 @@ export function setupDriveHandlers(): void {
   ipcMain.handle('drive:getFileContent', async (_, fileId: string) => {
     try {
       const drive = await getDriveClient()
-      
+
       // Get file metadata first to determine type
       const fileMetadata = await drive.files.get({
         fileId,
@@ -156,7 +156,7 @@ export function setupDriveHandlers(): void {
   ipcMain.handle('drive:refreshFolder', async (_, folderId: string) => {
     try {
       const drive = await getDriveClient()
-      
+
       // Get folder metadata
       const folderResponse = await drive.files.get({
         fileId: folderId,
@@ -170,7 +170,7 @@ export function setupDriveHandlers(): void {
         pageSize: 100
       })
 
-      const files: DriveFile[] = (filesResponse.data.files || []).map(file => ({
+      const files: DriveFile[] = (filesResponse.data.files || []).map((file) => ({
         id: file.id!,
         name: file.name!,
         mimeType: file.mimeType!,
