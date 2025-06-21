@@ -1,5 +1,6 @@
 import type React from 'react'
 import { useState, useRef, useEffect } from 'react'
+import Logo from '../ui/Logo'
 
 interface AppHeaderProps {
   onLogout: () => void
@@ -56,9 +57,7 @@ export function AppHeader({
 
   return (
     <div className="flex h-14 items-center justify-between bg-white text-black text-xl font-bold">
-      <span className="bg-black text-white px-6 py-1 h-full font-medium flex items-center">
-        Support+
-      </span>
+      <Logo className="h-full" />
       <div className="relative pr-4" ref={dropdownRef}>
         <button
           onClick={toggleDropdown}
