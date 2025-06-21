@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import type React from 'react'
 
 export interface DriveFile {
@@ -38,11 +38,42 @@ export const useDrive = (): DriveContextValue => {
 
 const { ipcRenderer } = window.electron
 
+const KNOWLEDGE_BASE_STORAGE_KEY = 'knowledgeBaseFolder'
+
 export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.Element => {
   const [knowledgeBaseFolder, setKnowledgeBaseFolder] = useState<DriveFolder | null>(null)
   const [selectedFiles, setSelectedFiles] = useState<DriveFile[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Load saved knowledge base folder on mount
+  useEffect(() => {
+    const loadSavedFolder = async () => {
+      try {
+        const saved = localStorage.getItem(KNOWLEDGE_BASE_STORAGE_KEY)
+        if (saved) {
+          const savedFolder = JSON.parse(saved) as DriveFolder
+          console.log('Loading saved knowledge base folder:', savedFolder.name)
+          setKnowledgeBaseFolder(savedFolder)
+          await loadFileContents(savedFolder.files)
+        }
+      } catch (err) {
+        console.error('Failed to load saved knowledge base:', err)
+        localStorage.removeItem(KNOWLEDGE_BASE_STORAGE_KEY)
+      }
+    }
+    
+    loadSavedFolder()
+  }, [])
+
+  // Save knowledge base folder when it changes
+  useEffect(() => {
+    if (knowledgeBaseFolder) {
+      localStorage.setItem(KNOWLEDGE_BASE_STORAGE_KEY, JSON.stringify(knowledgeBaseFolder))
+    } else {
+      localStorage.removeItem(KNOWLEDGE_BASE_STORAGE_KEY)
+    }
+  }, [knowledgeBaseFolder])
 
   const selectKnowledgeBaseFolder = async (folderId?: string): Promise<void> => {
     try {
@@ -111,6 +142,7 @@ export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.
     setKnowledgeBaseFolder(null)
     setSelectedFiles([])
     setError(null)
+    localStorage.removeItem(KNOWLEDGE_BASE_STORAGE_KEY)
   }
 
   return (
