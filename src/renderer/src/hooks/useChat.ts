@@ -97,6 +97,15 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
 
       contextMessages = [{ role: 'system', content: mailContext }, ...contextMessages]
     }
+
+    // Add knowledge base context as system message if available
+    if (selectedFiles.length > 0) {
+      const knowledgeContext = `Knowledge:\n${selectedFiles.map(file => 
+        `=== ${file.name} ===\n${file.content || '[Content could not be loaded]'}`
+      ).join('\n\n')}`
+      
+      contextMessages = [{ role: 'system', content: knowledgeContext }, ...contextMessages]
+    }
     setMessages([...messages, userMessage])
     setInput('')
     setLoading(true)
@@ -104,22 +113,6 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
       const assistantMessage: ChatMessage = { role: 'assistant', content: '' }
       setMessages((prev) => [...prev, assistantMessage])
       assistantContentRef.current = ''
-      // Prepare knowledge base context
-      let knowledgeContext = ''
-      if (selectedFiles.length > 0) {
-        knowledgeContext = `
-
-Knowledge Base Documents:
-${selectedFiles.map(file => 
-  `=== ${file.name} ===
-${file.content || '[Content could not be loaded]'}`
-).join('\n\n')}
-
-`
-      }
-
-      // Combine all contexts for enhanced prompt
-      const enhancedPrompt = `${input}${selectedMail?.subject || ''}${knowledgeContext}`
 
       await chatWithOpenAI(
         contextMessages,

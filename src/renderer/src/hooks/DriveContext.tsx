@@ -70,6 +70,9 @@ export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.
               file.mimeType === 'application/pdf') {
             try {
               const content = await ipcRenderer.invoke('drive:getFileContent', file.id)
+              // Debug: Log file and content
+              console.log('Loaded file:', file.name)
+              console.log('Loaded content:', content)
               return { ...file, content }
             } catch {
               return file
@@ -79,6 +82,8 @@ export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.
         })
       )
       setSelectedFiles(filesWithContent.filter(f => f.content))
+      // Debug: Log all selected files after loading
+      console.log('All selected files after loading:', filesWithContent)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load file contents')
     }
