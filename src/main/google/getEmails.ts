@@ -36,7 +36,14 @@ export async function getEmails({
   labelIds?: string[]
   query?: string
 } = {}): Promise<
-  Array<{ id?: string; subject?: string; from?: string; snippet?: string; body?: string }>
+  Array<{
+    id?: string
+    threadId?: string
+    subject?: string
+    from?: string
+    snippet?: string
+    body?: string
+  }>
 > {
   const gmail = await getGmailClient()
   const { data } = await gmail.users.messages.list({
@@ -57,6 +64,7 @@ export async function getEmails({
   )
   return details.map((d) => ({
     id: d.data.id ?? undefined,
+    threadId: d.data.threadId ?? undefined,
     subject: header(d.data, 'Subject'),
     from: header(d.data, 'From'),
     snippet: d.data.snippet ?? undefined,

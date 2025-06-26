@@ -156,22 +156,36 @@ export async function logout(): Promise<void> {
   await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME)
 }
 
-export async function sendReply(
-  threadId: string,
-  messageId: string,
-  to: string,
-  subject: string,
-  body: string
-): Promise<void> {
+export async function sendReply(messageId: string, body: string): Promise<void> {
   const gmail = await getGmailClient()
 
+  // First, get the original message to extract thread info and headers
+  const originalMessage = await gmail.users.messages.get({
+    userId: 'me',
+    id: messageId,
+    format: 'full'
+  })
+
+  const threadId = originalMessage.data.threadId
+  const headers = originalMessage.data.payload?.headers || []
+  const originalMessageId = headers.find((h) => h.name === 'Message-ID')?.value || ''
+
+  // Extract necessary headers from the original message
+  const originalFrom = headers.find((h) => h.name === 'From')?.value || ''
+  const originalSubject = headers.find((h) => h.name === 'Subject')?.value || ''
+
+  // Create reply subject (add RE: if not already present)
+  const replySubject = originalSubject.startsWith('RE:')
+    ? originalSubject
+    : `RE: ${originalSubject}`
+
   // Prepare the email message as HTML
-  const utf8Subject = Buffer.from(subject, 'utf-8').toString()
+  const utf8Subject = Buffer.from(replySubject, 'utf-8').toString()
   const messageParts = [
-    `To: ${to}`,
+    `To: ${originalFrom}`,
     `Subject: ${utf8Subject}`,
-    `In-Reply-To: ${messageId}`,
-    `References: ${messageId}`,
+    `In-Reply-To: ${originalMessageId}`,
+    `References: ${originalMessageId}`,
     'Content-Type: text/html; charset="UTF-8"',
     '',
     body
@@ -183,6 +197,15 @@ export async function sendReply(
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '')
+
+  console.log('Sending reply:', {
+    threadId,
+    messageId,
+    to: originalFrom,
+    subject: utf8Subject,
+    body,
+    originalMessageId
+  })
 
   await gmail.users.messages.send({
     userId: 'me',

@@ -8,7 +8,7 @@ import React, {
 } from 'react'
 import type { Mail } from '../../hooks/GmailContextValue'
 import { SendButton } from '../SendButton'
-import { useChat } from '../../hooks/useChat'
+import { useEmail } from '../../hooks/useEmail'
 
 interface ResponseMailRef {
   updateContent: (newContent: string) => void
@@ -33,7 +33,7 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
   const [formatVersion, setFormatVersion] = useState(0)
   const [localIsAiEditing, setLocalIsAiEditing] = useState(false)
   const editorRef = useRef<HTMLDivElement>(null)
-  const { sendReplyEmail, sendingReply } = useChat(mail)
+  const { sendReplyEmail, sendingReply } = useEmail(mail)
 
   // Use prop isAiEditing if provided, otherwise use local state
   const isAiEditing = propIsAiEditing !== undefined ? propIsAiEditing : localIsAiEditing
@@ -111,12 +111,12 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
   }, [])
 
   // Helper to get current editor content as plain text
-  const getEditorText = () => {
+  const getEditorText = (): string => {
     return editorRef.current?.innerText?.trim() || ''
   }
 
   // Handler for send button
-  const handleSend = () => {
+  const handleSend = (): void => {
     const html = editorRef.current?.innerHTML || ''
     sendReplyEmail(html)
   }

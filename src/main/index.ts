@@ -35,8 +35,8 @@ ipcMain.handle('gmail:getUserProfile', async () => {
   return await getUserProfile()
 })
 
-ipcMain.handle('gmail:sendReply', async (_event, { threadId, messageId, to, subject, body }) => {
-  return await sendReply(threadId, messageId, to, subject, body)
+ipcMain.handle('gmail:sendReply', async (_event, { messageId, body }) => {
+  return await sendReply(messageId, body)
 })
 
 function createWindow(): void {

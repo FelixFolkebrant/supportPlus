@@ -9,8 +9,6 @@ import { DEFAULT_PERSONALITY } from '../api/personalities'
 import type { Mail } from './GmailContextValue'
 import { useDrive } from './DriveContext'
 
-const { ipcRenderer } = window.electron
-
 interface UseChatReturn {
   messages: ChatMessage[]
   input: string
@@ -20,15 +18,12 @@ interface UseChatReturn {
   clearMessages: () => void
   setUpdateResponseMail: (fn: ResponseMailUpdateFunction) => void
   setMailEditingState: (fn: MailEditingStateFunction) => void
-  sendReplyEmail: (responseContent: string) => Promise<void>
-  sendingReply: boolean
 }
 
 export function useChat(selectedMail?: Mail | null): UseChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [sendingReply, setSendingReply] = useState(false)
   const assistantContentRef = useRef('')
   const updateResponseMailRef = useRef<ResponseMailUpdateFunction | undefined>(undefined)
   const mailEditingStateRef = useRef<MailEditingStateFunction | undefined>(undefined)
@@ -161,35 +156,6 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
     }
   }
 
-  const sendReplyEmail = async (responseContent: string): Promise<void> => {
-    if (!selectedMail || !responseContent.trim() || sendingReply) return
-
-    setSendingReply(true)
-    try {
-      // Call the main process to send the reply
-      await ipcRenderer.invoke('gmail:sendReply', {
-        threadId: selectedMail.id, // Use message id as thread id for now
-        messageId: selectedMail.id,
-        to: selectedMail.from || '',
-        subject: selectedMail.subject || '',
-        body: responseContent
-      })
-
-      // Clear the response draft after successful send
-      localStorage.removeItem(`responseMail:${selectedMail.id}`)
-
-      // Update the response mail display
-      if (updateResponseMailRef.current) {
-        updateResponseMailRef.current('', selectedMail.id)
-      }
-    } catch (error) {
-      console.error('Failed to send reply:', error)
-      throw error
-    } finally {
-      setSendingReply(false)
-    }
-  }
-
   const clearMessages = (): void => {
     setMessages([])
     if (chatStorageKey) {
@@ -204,8 +170,6 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
     sendMessage,
     clearMessages,
     setUpdateResponseMail,
-    setMailEditingState,
-    sendReplyEmail,
-    sendingReply
+    setMailEditingState
   }
 }

@@ -2,6 +2,7 @@ import { createContext } from 'react'
 
 export type Mail = {
   id?: string
+  threadId?: string
   subject?: string
   from?: string
   snippet?: string

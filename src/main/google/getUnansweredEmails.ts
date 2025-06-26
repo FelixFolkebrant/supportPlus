@@ -85,6 +85,7 @@ export async function getUnansweredEmails({
   const threadsChecked = new Set<string>()
   const unanswered: Array<{
     id?: string
+    threadId?: string
     subject?: string
     from?: string
     snippet?: string
@@ -116,6 +117,7 @@ export async function getUnansweredEmails({
       const bodyData = getBody(lastMsg)
       unanswered.push({
         id: lastMsg.id ?? undefined,
+        threadId: msgMeta.threadId ?? undefined,
         subject: header(lastMsg, 'Subject'),
         from: header(lastMsg, 'From'),
         snippet: lastMsg.snippet ?? undefined,
