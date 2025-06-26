@@ -2,14 +2,12 @@ import React from 'react'
 import { GmailProvider } from './hooks/GmailContext'
 import { DriveProvider } from './hooks/DriveContext'
 import { AppLayout } from './components/layout'
-import LoadingScreen from './components/ui/LoadingScreen'
 import WelcomeScreen from './components/ui/WelcomeScreen'
 import { useGmail } from './hooks/useGmail'
 
 function MailAppContent(): React.JSX.Element {
-  const { loading, needsLogin, login, loginInProgress, logout } = useGmail()
+  const { needsLogin, login, loginInProgress, logout } = useGmail()
 
-  if (loading) return <LoadingScreen />
   if (needsLogin) return <WelcomeScreen onLogin={login} loginInProgress={loginInProgress} />
 
   return <AppLayout onLogout={logout} />
