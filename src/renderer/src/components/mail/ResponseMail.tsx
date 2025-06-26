@@ -32,6 +32,7 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
   const [isFocused, setIsFocused] = useState(false)
   const [formatVersion, setFormatVersion] = useState(0)
   const [localIsAiEditing, setLocalIsAiEditing] = useState(false)
+  const [sendStatus, setSendStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
   const editorRef = useRef<HTMLDivElement>(null)
   const { sendReplyEmail, sendingReply } = useEmail(mail)
 
@@ -116,89 +117,116 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
   }
 
   // Handler for send button
-  const handleSend = (): void => {
+  const handleSend = async (): Promise<void> => {
+    setSendStatus('sending')
     const html = editorRef.current?.innerHTML || ''
-    sendReplyEmail(html)
+    try {
+      await sendReplyEmail(html)
+      setSendStatus('sent')
+    } catch (e) {
+      setSendStatus('idle')
+      // Optionally handle error here
+    }
   }
+
+  // Reset sendStatus when mail changes
+  useEffect(() => {
+    setSendStatus('idle')
+  }, [mail.id])
 
   return (
     <div className="p-4 border-t border-gray-200 text-black bg-gray-50">
       <h3 className="text-2xl font-bold text-secondary mb-2">{title}</h3>
-      <div className="flex gap-2 mb-2" key={formatVersion}>
-        <button
-          type="button"
-          disabled={isAiEditing}
-          className={`px-2 py-1 border rounded ${isFormatActive('bold') ? 'bg-blue-200' : ''} ${
-            isAiEditing ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          onMouseDown={(e) => {
-            e.preventDefault()
-            format('bold')
-          }}
-        >
-          B
-        </button>
-        <button
-          type="button"
-          disabled={isAiEditing}
-          className={`px-2 py-1 border rounded ${isFormatActive('italic') ? 'bg-blue-200' : ''} ${
-            isAiEditing ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          onMouseDown={(e) => {
-            e.preventDefault()
-            format('italic')
-          }}
-        >
-          <span style={{ fontStyle: 'italic' }}>I</span>
-        </button>
-        <button
-          type="button"
-          disabled={isAiEditing}
-          className={`px-2 py-1 border rounded ${isFormatActive('underline') ? 'bg-blue-200' : ''} ${
-            isAiEditing ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          onMouseDown={(e) => {
-            e.preventDefault()
-            format('underline')
-          }}
-        >
-          <span style={{ textDecoration: 'underline' }}>U</span>
-        </button>
-      </div>
-      <div className="relative">
-        <div
-          ref={editorRef}
-          className={`w-full mb-2 p-2 border rounded min-h-[80px] bg-white focus:outline-none ${
-            isFocused ? 'ring-2 ring-blue-400' : ''
-          } ${isAiEditing ? 'pointer-events-none opacity-70' : ''}`}
-          contentEditable={!isAiEditing}
-          suppressContentEditableWarning
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          onInput={handleInput}
-          style={{ minHeight: 80 }}
-        />
-        {isAiEditing && (
-          <div className="absolute inset-0 bg-blue-50 bg-opacity-95 flex items-center justify-center rounded border-2 border-blue-200">
-            <div className="flex flex-col items-center space-y-3 text-blue-700">
-              <div className="animate-spin h-8 w-8 border-3 border-blue-600 border-t-transparent rounded-full"></div>
-              <div className="text-center">
-                <div className="font-semibold">AI Assistant is editing...</div>
-                <div className="text-sm text-blue-600">
-                  Please wait while your email is being improved
+      {sendStatus === 'sending' && (
+        <div className="flex items-center justify-center min-h-[100px] text-blue-700">
+          <div className="animate-spin h-8 w-8 border-3 border-blue-600 border-t-transparent rounded-full mr-3"></div>
+          <span>Sending message...</span>
+        </div>
+      )}
+      {sendStatus === 'sent' && (
+        <div className="flex items-center justify-center min-h-[100px] text-green-700 font-semibold">
+          <span>Message sent!</span>
+        </div>
+      )}
+      {sendStatus === 'idle' && (
+        <>
+          <div className="flex gap-2 mb-2" key={formatVersion}>
+            <button
+              type="button"
+              disabled={isAiEditing}
+              className={`px-2 py-1 border rounded ${isFormatActive('bold') ? 'bg-blue-200' : ''} ${
+                isAiEditing ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                format('bold')
+              }}
+            >
+              B
+            </button>
+            <button
+              type="button"
+              disabled={isAiEditing}
+              className={`px-2 py-1 border rounded ${isFormatActive('italic') ? 'bg-blue-200' : ''} ${
+                isAiEditing ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                format('italic')
+              }}
+            >
+              <span style={{ fontStyle: 'italic' }}>I</span>
+            </button>
+            <button
+              type="button"
+              disabled={isAiEditing}
+              className={`px-2 py-1 border rounded ${isFormatActive('underline') ? 'bg-blue-200' : ''} ${
+                isAiEditing ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                format('underline')
+              }}
+            >
+              <span style={{ textDecoration: 'underline' }}>U</span>
+            </button>
+          </div>
+          <div className="relative">
+            <div
+              ref={editorRef}
+              className={`w-full mb-2 p-2 border rounded min-h-[80px] bg-white focus:outline-none ${
+                isFocused ? 'ring-2 ring-blue-400' : ''
+              } ${isAiEditing ? 'pointer-events-none opacity-70' : ''}`}
+              contentEditable={!isAiEditing}
+              suppressContentEditableWarning
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              onInput={handleInput}
+              style={{ minHeight: 80 }}
+            />
+            {isAiEditing && (
+              <div className="absolute inset-0 bg-blue-50 bg-opacity-95 flex items-center justify-center rounded border-2 border-blue-200">
+                <div className="flex flex-col items-center space-y-3 text-blue-700">
+                  <div className="animate-spin h-8 w-8 border-3 border-blue-600 border-t-transparent rounded-full"></div>
+                  <div className="text-center">
+                    <div className="font-semibold">AI Assistant is editing...</div>
+                    <div className="text-sm text-blue-600">
+                      Please wait while your email is being improved
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        )}
-      </div>
-      <div className="flex justify-end mt-2">
-        <SendButton
-          onSend={handleSend}
-          disabled={isAiEditing || !getEditorText()}
-          loading={sendingReply}
-        />
-      </div>
+          <div className="flex justify-end mt-2">
+            <SendButton
+              onSend={handleSend}
+              disabled={isAiEditing || !getEditorText()}
+              loading={sendingReply}
+            />
+          </div>
+        </>
+      )}
     </div>
   )
 })
