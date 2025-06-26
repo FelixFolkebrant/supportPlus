@@ -57,30 +57,35 @@ async function getMyEmail(gmail: gmail_v1.Gmail): Promise<string> {
 export async function getUnansweredEmails({
   maxResults = 3,
   labelIds = ['INBOX'],
-  query = 'category:primary'
+  query = 'category:primary',
+  pageToken = undefined
 }: {
   maxResults?: number
   labelIds?: string[]
   query?: string
-} = {}): Promise<
-  Array<{
+  pageToken?: string
+} = {}): Promise<{
+  mails: Array<{
     id?: string
+    threadId?: string
     subject?: string
     from?: string
     snippet?: string
     body?: string
     isHtml?: boolean
   }>
-> {
+  nextPageToken?: string
+}> {
   const gmail = await getGmailClient()
   const myEmail = await getMyEmail(gmail)
   const { data } = await gmail.users.messages.list({
     userId: 'me',
     maxResults: maxResults * 3, // fetch more to filter
     labelIds,
-    q: query
+    q: query,
+    pageToken
   })
-  if (!data.messages) return []
+  if (!data.messages) return { mails: [], nextPageToken: undefined }
 
   const threadsChecked = new Set<string>()
   const unanswered: Array<{
@@ -128,5 +133,29 @@ export async function getUnansweredEmails({
     threadsChecked.add(msgMeta.threadId)
   }
 
-  return unanswered.slice(0, maxResults)
+  return {
+    mails: unanswered.slice(0, maxResults),
+    nextPageToken: data.nextPageToken || undefined
+  }
+}
+
+/**
+ * Returns the estimated total count of unanswered emails matching the filter
+ */
+export async function getUnansweredEmailsCount({
+  labelIds = ['INBOX'],
+  query = 'category:primary'
+}: {
+  labelIds?: string[]
+  query?: string
+} = {}): Promise<number> {
+  const gmail = await getGmailClient()
+  const { data } = await gmail.users.messages.list({
+    userId: 'me',
+    maxResults: 1, // We only need the count, not the actual messages
+    labelIds,
+    q: query
+  })
+
+  return data.resultSizeEstimate || 0
 }

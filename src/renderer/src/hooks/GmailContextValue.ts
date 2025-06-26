@@ -21,9 +21,13 @@ export interface GmailContextType {
   unansweredMails: Mail[]
   userProfile: UserProfile | null
   loading: boolean
+  loadingMore: boolean
+  hasMore: boolean
+  totalCount: number
   needsLogin: boolean
   loginInProgress: boolean
   refresh: () => void
+  loadMore: () => void
   login: () => void
   logout: () => void
 }

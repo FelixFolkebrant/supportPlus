@@ -4,7 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import './google/auth'
 import { getEmails } from './google/getEmails'
-import { getUnansweredEmails } from './google/getUnansweredEmails'
+import { getUnansweredEmails, getUnansweredEmailsCount } from './google/getUnansweredEmails'
 import { getGmailClient, hasValidToken, logout as gmailLogout, sendReply } from './google/auth'
 import { getUserProfile } from './google/getUserProfile'
 import { setupDriveHandlers } from './google/drive'
@@ -15,6 +15,10 @@ ipcMain.handle('gmail:getMails', async (_event, args) => {
 
 ipcMain.handle('gmail:getUnansweredMails', async (_event, args) => {
   return await getUnansweredEmails(args)
+})
+
+ipcMain.handle('gmail:getUnansweredMailsCount', async (_event, args) => {
+  return await getUnansweredEmailsCount(args)
 })
 
 ipcMain.handle('gmail:login', async () => {

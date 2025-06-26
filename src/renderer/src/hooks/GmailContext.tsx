@@ -9,25 +9,41 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
   const [unansweredMails, setUnansweredMails] = useState<Mail[]>([])
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
+  const [loadingMore, setLoadingMore] = useState<boolean>(false)
+  const [hasMore, setHasMore] = useState<boolean>(true)
+  const [totalCount, setTotalCount] = useState<number>(0)
   const [needsLogin, setNeedsLogin] = useState<boolean>(false)
   const [loginInProgress, setLoginInProgress] = useState<boolean>(false)
+  const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined)
+
+  const MAILS_PER_PAGE = 8
 
   const fetchAll = (): void => {
     setLoading(true)
     setNeedsLogin(false)
+    setNextPageToken(undefined)
+    setHasMore(true)
     Promise.all([
       ipcRenderer.invoke('gmail:getMails', { maxResults: 3, labelIds: ['INBOX'], query: '' }),
       ipcRenderer.invoke('gmail:getUnansweredMails', {
-        maxResults: 5,
+        maxResults: MAILS_PER_PAGE,
         labelIds: ['INBOX'],
         query: 'category:primary is:unread'
       }),
-      ipcRenderer.invoke('gmail:getUserProfile')
+      ipcRenderer.invoke('gmail:getUserProfile'),
+      ipcRenderer.invoke('gmail:getUnansweredMailsCount', {
+        labelIds: ['INBOX'],
+        query: 'category:primary is:unread'
+      })
     ])
-      .then(([allData, unansweredData, profileData]) => {
+      .then(([allData, unansweredData, profileData, countData]) => {
         setMails(allData as Mail[])
-        setUnansweredMails(unansweredData as Mail[])
+        const response = unansweredData as { mails: Mail[]; nextPageToken?: string }
+        setUnansweredMails(response.mails)
         setUserProfile(profileData as UserProfile)
+        setNextPageToken(response.nextPageToken)
+        setHasMore(!!response.nextPageToken)
+        setTotalCount(countData as number)
       })
       .catch((err) => {
         if (err && err.message && err.message.includes('invalid_grant')) {
@@ -35,6 +51,30 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         }
       })
       .finally(() => setLoading(false))
+  }
+
+  const loadMore = (): void => {
+    if (loadingMore || !hasMore || !nextPageToken) return
+
+    setLoadingMore(true)
+
+    ipcRenderer
+      .invoke('gmail:getUnansweredMails', {
+        maxResults: MAILS_PER_PAGE,
+        labelIds: ['INBOX'],
+        query: 'category:primary is:unread',
+        pageToken: nextPageToken
+      })
+      .then((data) => {
+        const response = data as { mails: Mail[]; nextPageToken?: string }
+        setUnansweredMails((prev) => [...prev, ...response.mails])
+        setNextPageToken(response.nextPageToken)
+        setHasMore(!!response.nextPageToken)
+      })
+      .catch((err) => {
+        console.error('Error loading more mails:', err)
+      })
+      .finally(() => setLoadingMore(false))
   }
 
   const login = (): void => {
@@ -58,6 +98,10 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
       setMails([])
       setUnansweredMails([])
       setUserProfile(null)
+      setNextPageToken(undefined)
+      setHasMore(true)
+      setLoadingMore(false)
+      setTotalCount(0)
     })
   }
 
@@ -78,9 +122,13 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         unansweredMails,
         userProfile,
         loading,
+        loadingMore,
+        hasMore,
+        totalCount,
         needsLogin,
         loginInProgress,
         refresh: fetchAll,
+        loadMore,
         login,
         logout
       }}
