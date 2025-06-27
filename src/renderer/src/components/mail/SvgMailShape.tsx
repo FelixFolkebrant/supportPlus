@@ -37,8 +37,8 @@ const SvgMailShape: React.FC<SvgMailShapeProps> = ({ className, style, children,
     const to = active ? MAIL_PATH : SQUARE_PATH
     const interpolator = flubber.interpolate(from, to)
     let frame = 0
-    // Fast when activating, slower when deactivating
-    const totalFrames = active ? 10 : 20
+    // Increased animation duration: slower when activating, much slower when deactivating
+    const totalFrames = active ? 15 : 40
     // Cubic ease in-out
     const easeInOutCubic = (t: number): number =>
       t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2

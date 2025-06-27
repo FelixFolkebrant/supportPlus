@@ -43,20 +43,20 @@ const MailPreview: React.FC<MailPreviewProps> = ({ subject, from, active, date }
       <div className="flex flex-row items-center justify-between w-full">
         <div
           className={`font-medium leading-5 text-xl max-w-5/6 ${
-            active ? 'text-black' : 'text-third/90'
+            active ? 'text-black' : 'text-third'
           }`}
         >
           {subject}
         </div>
         <div
           className={`text-sm whitespace-nowrap ml-6 relative right-5 ${
-            active ? 'text-secondary' : 'text-third/70'
+            active ? 'text-secondary' : 'text-third'
           }`}
         >
           {formatTime(date)}
         </div>
       </div>
-      <div className={`leading-7 text-base mt-1 ${active ? 'text-secondary' : 'text-third/70'}`}>
+      <div className={`leading-7 text-base mt-1 ${active ? 'text-secondary' : 'text-third'}`}>
         {getNameOnly(from)}
       </div>
       {/* <p className="text-sm justify-start max-h-[54px] text-third relative overflow-clip">

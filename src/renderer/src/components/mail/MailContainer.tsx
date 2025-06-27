@@ -4,6 +4,7 @@ import FullMail from './FullMail'
 import { ResponseMail } from './ResponseMail'
 import type { Mail } from '../../hooks/GmailContextValue'
 import { useGmail } from '../../hooks/useGmail'
+import { AnimatePresence, motion } from './framerMotion'
 
 // Extend Window interface for our global function
 declare global {
@@ -51,25 +52,32 @@ export function MailContainer({
     <div className="flex h-screen w-full">
       {/* Left: MailWindow grows to content */}
       <div
-        className="flex-none xl:flex hidden bg-white h-full z-10 px-4 py-2 border-r border-gray-50"
-        style={{ boxShadow: '4px 0 8px -2px rgba(0,0,0,0.10)' }}
+        className="flex-none xl:flex hidden bg-white h-full z-10 px-4 py-2"
       >
         <MailSelectWindow selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
       </div>
 
       {/* Middle: FullMail takes remaining space */}
       <div className="flex-1 px-12 pt-4 bg-white overflow-auto">
-        {selectedMail ? (
-          <>
-            <FullMail {...selectedMail} />
-            <ResponseMail
-              mail={selectedMail}
-              onRegisterUpdate={handleRegisterUpdate}
-              onRegisterEditingState={handleRegisterEditingState}
-              onSent={handleMailSent} // <-- Pass the handler
-            />
-          </>
-        ) : null}
+        <AnimatePresence mode="wait">
+          {selectedMail ? (
+            <motion.div
+              key={selectedMail.id}
+              initial={{ opacity: 0, x: -5 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 5 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              <FullMail {...selectedMail} />
+              <ResponseMail
+                mail={selectedMail}
+                onRegisterUpdate={handleRegisterUpdate}
+                onRegisterEditingState={handleRegisterEditingState}
+                onSent={handleMailSent}
+              />
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </div>
     </div>
   )
