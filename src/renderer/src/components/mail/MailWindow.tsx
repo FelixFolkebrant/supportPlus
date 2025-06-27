@@ -38,7 +38,7 @@ export default function MailWindow({
   }, [handleScroll])
 
   return (
-    <div className="py-10 h-full flex flex-col gap-8">
+    <div className="py-4 h-full flex flex-col gap-8">
       <ul ref={listRef} className="flex flex-col gap-3 flex-1 overflow-y-auto">
         {Array.isArray(unansweredMails) && unansweredMails.length > 0 ? (
           <>

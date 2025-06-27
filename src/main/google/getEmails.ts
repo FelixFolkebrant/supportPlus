@@ -43,6 +43,7 @@ export async function getEmails({
     from?: string
     snippet?: string
     body?: string
+    date?: string
   }>
 > {
   const gmail = await getGmailClient()
@@ -68,6 +69,7 @@ export async function getEmails({
     subject: header(d.data, 'Subject'),
     from: header(d.data, 'From'),
     snippet: d.data.snippet ?? undefined,
-    body: getBody(d.data)
+    body: getBody(d.data),
+    date: d.data.internalDate ?? undefined
   }))
 }

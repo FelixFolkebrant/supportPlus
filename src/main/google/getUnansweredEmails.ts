@@ -73,6 +73,7 @@ export async function getUnansweredEmails({
     snippet?: string
     body?: string
     isHtml?: boolean
+    date?: string
   }>
   nextPageToken?: string
 }> {
@@ -96,6 +97,7 @@ export async function getUnansweredEmails({
     snippet?: string
     body?: string
     isHtml?: boolean
+    date?: string
   }> = []
 
   for (const msgMeta of data.messages) {
@@ -127,7 +129,8 @@ export async function getUnansweredEmails({
         from: header(lastMsg, 'From'),
         snippet: lastMsg.snippet ?? undefined,
         body: bodyData.content,
-        isHtml: bodyData.isHtml
+        isHtml: bodyData.isHtml,
+        date: lastMsg.internalDate ?? undefined
       })
     }
     threadsChecked.add(msgMeta.threadId)

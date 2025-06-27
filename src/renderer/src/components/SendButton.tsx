@@ -12,15 +12,22 @@ export const SendButton: React.FC<SendButtonProps> = ({ onSend, disabled, loadin
       onClick={onSend}
       disabled={disabled || loading}
       className={`
-        px-4 py-2 rounded-md font-medium transition-colors
+        px-6 py-2.5 rounded-md font-medium transition-all duration-200 shadow-sm
         ${
           disabled || loading
-            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
+            ? 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-200'
+            : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 border border-blue-600 hover:shadow-md'
         }
       `}
     >
-      {loading ? 'Sending...' : 'Send Reply'}
+      {loading ? (
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+          <span>Sending...</span>
+        </div>
+      ) : (
+        'Send Reply'
+      )}
     </button>
   )
 }

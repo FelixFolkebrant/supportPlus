@@ -6,6 +6,7 @@ interface MailPreviewProps {
   from?: string
   snippet?: string
   active?: boolean
+  date?: string
 }
 
 const getNameOnly = (from?: string): string => {
@@ -13,16 +14,41 @@ const getNameOnly = (from?: string): string => {
   return from.replace(/\s*<[^>]+>/, '').trim()
 }
 
-const MailPreview: React.FC<MailPreviewProps> = ({ subject, from, snippet, active }) => (
-  <li className="relative flex items-center w-[380px] h-[100px]">
+const formatTime = (date?: string): string => {
+  if (!date) return ''
+
+  const timestamp = parseInt(date, 10)
+  const now = Date.now()
+  const diffMs = now - timestamp
+
+  const diffMinutes = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} min${diffMinutes !== 1 ? 's' : ''}`
+  } else if (diffHours < 24) {
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`
+  } else {
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''}`
+  }
+}
+
+const MailPreview: React.FC<MailPreviewProps> = ({ subject, from, active, date }) => (
+  <li className="relative flex items-center w-[450px] h-[120px]">
     {/* SVG background shape */}
     <SvgMailShape className="w-full h-full" active={active} />
     {/* Content overlay */}
-    <div className="relative z-10 w-10/12 p-4 flex flex-col items-start">
-      <div className="font-bold text-secondary leading-5 text-base">{subject}</div>
-      <div className="text-secondary leading-5 text-xs">{getNameOnly(from)}</div>
-      {/* <p className="text-[0.65rem] justify-start max-h-[54px] text-third relative overflow-clip">
-        {snippet}
+    <div className="relative z-10 w-full p-4 flex flex-col h-full">
+      <div className="flex flex-row items-center justify-between w-full">
+        <div className="font-medium text-third leading-5 text-xl max-w-5/6">{subject}</div>
+        <div className="text-third/70 text-sm whitespace-nowrap ml-6 relative right-5">
+          {formatTime(date)}
+        </div>
+      </div>
+      <div className="text-third leading-7 text-base mt-1">{getNameOnly(from)}</div>
+      {/* <p className="text-sm justify-start max-h-[54px] text-third relative overflow-clip">
+        {snippet?.slice(0, 100) + '...'}
       </p> */}
     </div>
   </li>

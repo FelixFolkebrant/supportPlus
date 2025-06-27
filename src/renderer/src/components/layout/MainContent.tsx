@@ -64,7 +64,7 @@ export function MainContent(): React.JSX.Element {
   return (
     <div
       id="main-content-container"
-      className="flex pl-2 flex-1 h-[calc(100%-3.5rem)] w-full overflow-hidden"
+      className="flex pl-2 flex-1 h-full w-full overflow-hidden"
     >
       <div className="flex-1 h-full min-w-0">
         <MailContainer
@@ -87,7 +87,7 @@ export function MainContent(): React.JSX.Element {
       />
       <div
         style={{ width: chatWidth, minWidth: MIN_CHAT_WIDTH, maxWidth: MAX_CHAT_WIDTH }}
-        className="h-full flex-shrink-0"
+        className="h-full pt-14 pb-4 flex-shrink-0"
       >
         <ChatContainer
           selectedMail={selectedMail}

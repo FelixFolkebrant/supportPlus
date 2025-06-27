@@ -56,7 +56,7 @@ export function AppHeader({
   }, [])
 
   return (
-    <div className="flex h-14 items-center justify-between bg-white text-black text-xl font-bold">
+    <div className="flex h-14 absolute w-full z-100 bg-transparent items-center justify-between text-black text-xl font-bold">
       <div className="h-full flex items-stretch">
         <Logo className="h-full w-auto" />
       </div>

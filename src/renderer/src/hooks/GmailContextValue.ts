@@ -8,6 +8,7 @@ export type Mail = {
   snippet?: string
   body?: string
   isHtml?: boolean
+  date?: string // timestamp from Gmail API internalDate
 }
 
 export interface UserProfile {
