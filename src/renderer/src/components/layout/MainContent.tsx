@@ -73,8 +73,14 @@ export function MainContent(): React.JSX.Element {
       </div>
       {/* Divider */}
       <div
-        style={{ cursor: 'col-resize', width: 6, margin: '0 2px', zIndex: 10 }}
-        className="bg-gray-200 hover:bg-gray-300 active:bg-gray-400 transition-colors h-full"
+        style={{
+          cursor: 'col-resize',
+          width: 6,
+          margin: '0 2px',
+          zIndex: 10,
+          boxShadow: '-4px 0 8px -2px rgba(0,0,0,0.10)'
+        }}
+        className="active:bg-gray-400 transition-colors h-full"
         onMouseDown={() => {
           dragging.current = true
         }}
