@@ -105,6 +105,10 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
     })
   }
 
+  const removeUnansweredMail = (mailId: string): void => {
+    setUnansweredMails((prev) => prev.filter((m) => m.id !== mailId))
+  }
+
   useEffect(() => {
     ipcRenderer.invoke('gmail:hasValidToken').then((valid: boolean) => {
       if (valid) {
@@ -130,7 +134,8 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         refresh: fetchAll,
         loadMore,
         login,
-        logout
+        logout,
+        removeUnansweredMail
       }}
     >
       {children}

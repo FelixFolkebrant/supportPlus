@@ -30,6 +30,7 @@ export interface GmailContextType {
   loadMore: () => void
   login: () => void
   logout: () => void
+  removeUnansweredMail: (mailId: string) => void
 }
 
 export const GmailContext = createContext<GmailContextType | undefined>(undefined)

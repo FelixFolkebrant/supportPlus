@@ -19,10 +19,11 @@ interface ResponseMailProps {
   onRegisterUpdate?: (updateFn: (mailId: string, content: string) => void) => void
   onRegisterEditingState?: (setEditingState: (isEditing: boolean) => void) => void
   isAiEditing?: boolean
+  onSent?: () => void // <-- Add this prop
 }
 
 export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(function ResponseMail(
-  { mail, onRegisterUpdate, onRegisterEditingState, isAiEditing: propIsAiEditing },
+  { mail, onRegisterUpdate, onRegisterEditingState, isAiEditing: propIsAiEditing, onSent }, // <-- Add onSent
   ref
 ): React.JSX.Element {
   const storageKey = `responseMail:${mail.id}`
@@ -123,6 +124,7 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
     try {
       await sendReplyEmail(html)
       setSendStatus('sent')
+      if (onSent) onSent() // <-- Call onSent after successful send
     } catch (e) {
       setSendStatus('idle')
       // Optionally handle error here

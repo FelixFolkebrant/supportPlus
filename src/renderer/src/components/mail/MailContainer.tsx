@@ -3,6 +3,7 @@ import MailWindow from './MailWindow'
 import FullMail from './FullMail'
 import { ResponseMail } from './ResponseMail'
 import type { Mail } from '../../hooks/GmailContextValue'
+import { useGmail } from '../../hooks/useGmail'
 
 // Extend Window interface for our global function
 declare global {
@@ -24,6 +25,8 @@ export function MailContainer({
   onUpdateResponseMail,
   onRegisterMailEditingState
 }: MailContainerProps): React.JSX.Element {
+  const { removeUnansweredMail } = useGmail() // <-- Use the hook
+
   const handleRegisterUpdate = (updateFn: (mailId: string, content: string) => void): void => {
     // Store this update function globally so the chat can call it
     window.responseMailUpdate = updateFn
@@ -35,6 +38,15 @@ export function MailContainer({
       onRegisterMailEditingState(setEditingState)
     }
   }
+
+  // Remove mail from list and clear selection after send
+  const handleMailSent = () => {
+    if (selectedMail && selectedMail.id) {
+      removeUnansweredMail(selectedMail.id)
+      setSelectedMail(null)
+    }
+  }
+
   return (
     <div className="flex h-full w-full">
       {/* Left: MailWindow grows to content */}
@@ -51,6 +63,7 @@ export function MailContainer({
               mail={selectedMail}
               onRegisterUpdate={handleRegisterUpdate}
               onRegisterEditingState={handleRegisterEditingState}
+              onSent={handleMailSent} // <-- Pass the handler
             />
           </>
         ) : null}
