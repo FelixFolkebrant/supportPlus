@@ -5,9 +5,16 @@ type ChatInputProps = {
   onChange: (v: string) => void
   onSend: () => void
   loading: boolean
+  disabled?: boolean
 }
 
-export function ChatInput({ value, onChange, onSend, loading }: ChatInputProps): React.JSX.Element {
+export function ChatInput({
+  value,
+  onChange,
+  onSend,
+  loading,
+  disabled
+}: ChatInputProps): React.JSX.Element {
   return (
     <div className="flex px-2 gap-2 border border-black rounded-full mt-2">
       <input
@@ -15,16 +22,16 @@ export function ChatInput({ value, onChange, onSend, loading }: ChatInputProps):
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && !loading) onSend()
+          if (e.key === 'Enter' && !loading && !disabled) onSend()
         }}
         placeholder="Type your message..."
-        disabled={loading}
+        disabled={loading || disabled}
         style={{ background: 'none', border: 'none', boxShadow: 'none' }}
       />
       <button
         className="px-4 py-2 text-white rounded"
         onClick={onSend}
-        disabled={loading || !value.trim()}
+        disabled={loading || !value.trim() || disabled}
       >
         <SendHorizontal stroke="black" />
       </button>

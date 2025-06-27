@@ -1,5 +1,6 @@
 import { Personality } from '../api/personalities'
 import { generateAutoDraft } from './openai'
+import { getOpenAIApiKey } from './apiKeyManager'
 
 export type ChatMessage = {
   role: 'user' | 'assistant' | 'system'
@@ -60,11 +61,14 @@ export async function chatWithOpenAI(
   setMailEditingState?: MailEditingStateFunction,
   originalEmailContent?: string
 ): Promise<void> {
-  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
+  const OPENAI_API_KEY = getOpenAIApiKey()
+  console.log(
+    'Using API key in chat:',
+    OPENAI_API_KEY ? 'sk-...' + OPENAI_API_KEY.slice(-4) : 'null'
+  )
 
   if (!OPENAI_API_KEY) {
-    console.error('VITE_OPENAI_API_KEY environment variable is not set')
-    throw new Error('OpenAI API key is not configured')
+    throw new Error('OpenAI API key is not configured. Please add your API key in the settings.')
   }
 
   const systemMessage = { role: 'system', content: personality.systemPrompt }

@@ -6,6 +6,7 @@ import { DocumentsTab } from '../chat/DocumentsTab'
 import { useChat } from '../../hooks/useChat'
 import { useDrive } from '../../hooks/DriveContext'
 import type { Mail } from '../../hooks/GmailContextValue'
+import { hasValidOpenAIApiKey } from '../../api/apiKeyManager'
 
 interface ChatContainerProps {
   selectedMail: Mail | null
@@ -108,14 +109,38 @@ export function ChatContainer({
       {activeTab === 'chat' ? (
         <>
           <div className="flex-1 overflow-y-auto pb-20 justify-center flex p-4">
-            <ChatWindow
-              messages={messages}
-              loading={loading}
-              onShowKnowledgeTab={() => setActiveTab('documents')}
-            />
+            {!hasValidOpenAIApiKey() ? (
+              <div className="w-full flex flex-col items-center justify-center text-center p-8 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="mb-4 text-2xl">⚠️</div>
+                <div className="mb-2 font-semibold text-lg text-yellow-800">
+                  OpenAI API key required
+                </div>
+                <div className="mb-4 text-yellow-700 text-sm max-w-md">
+                  To use the chat, please add your OpenAI API key in the Documents tab.
+                </div>
+                <button
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+                  onClick={() => setActiveTab('documents')}
+                >
+                  Go to Documents
+                </button>
+              </div>
+            ) : (
+              <ChatWindow
+                messages={messages}
+                loading={loading}
+                onShowKnowledgeTab={() => setActiveTab('documents')}
+              />
+            )}
           </div>
           <div className="w-full absolute left-0 right-0 bottom-0 px-4 pb-4 bg-white">
-            <ChatInput value={input} onChange={setInput} onSend={sendMessage} loading={loading} />
+            <ChatInput
+              value={input}
+              onChange={setInput}
+              onSend={sendMessage}
+              loading={loading}
+              disabled={!hasValidOpenAIApiKey()}
+            />
           </div>
         </>
       ) : (

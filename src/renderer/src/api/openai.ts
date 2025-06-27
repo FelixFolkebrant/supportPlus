@@ -1,9 +1,15 @@
 import axios from 'axios'
+import { getOpenAIApiKey } from './apiKeyManager'
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
 export async function getHorrorStory(prompt: string): Promise<string> {
+  const OPENAI_API_KEY = getOpenAIApiKey()
+  
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key is not configured. Please add your API key in the settings.')
+  }
+
   try {
     const response = await axios.post(
       OPENAI_API_URL,
@@ -32,7 +38,12 @@ export async function getHorrorStoryStream(
   prompt: string,
   onToken: (token: string) => void
 ): Promise<void> {
-  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
+  const OPENAI_API_KEY = getOpenAIApiKey()
+  
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key is not configured. Please add your API key in the settings.')
+  }
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -85,6 +96,12 @@ export async function generateAutoDraft(
   originalEmail: string,
   userInstructions?: string
 ): Promise<string> {
+  const OPENAI_API_KEY = getOpenAIApiKey()
+  
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key is not configured. Please add your API key in the settings.')
+  }
+
   try {
     const systemPrompt = `You are a professional customer support assistant. Your task is to generate a polite, helpful, and professional email reply based on the original email content.
 
