@@ -1,5 +1,5 @@
 import type React from 'react'
-import MailWindow from './MailWindow'
+import MailSelectWindow from './MailSelectWindow'
 import FullMail from './FullMail'
 import { ResponseMail } from './ResponseMail'
 import type { Mail } from '../../hooks/GmailContextValue'
@@ -51,14 +51,14 @@ export function MailContainer({
     <div className="flex h-screen w-full">
       {/* Left: MailWindow grows to content */}
       <div
-        className="flex-none pt-12 xl:flex hidden bg-white h-full z-10 px-4 py-2 border-r border-gray-50"
+        className="flex-none xl:flex hidden bg-white h-full z-10 px-4 py-2 border-r border-gray-50"
         style={{ boxShadow: '4px 0 8px -2px rgba(0,0,0,0.10)' }}
       >
-        <MailWindow selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
+        <MailSelectWindow selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
       </div>
 
       {/* Middle: FullMail takes remaining space */}
-      <div className="flex-1 px-12 pt-10 bg-white overflow-auto">
+      <div className="flex-1 px-12 pt-4 bg-white overflow-auto">
         {selectedMail ? (
           <>
             <FullMail {...selectedMail} />

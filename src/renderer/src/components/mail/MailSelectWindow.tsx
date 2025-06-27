@@ -8,7 +8,7 @@ interface MailWindowProps {
   setSelectedMail: (mail: Mail) => void
 }
 
-export default function MailWindow({
+export default function MailSelectWindow({
   selectedMail,
   setSelectedMail
 }: MailWindowProps): React.ReactElement {
@@ -38,7 +38,26 @@ export default function MailWindow({
   }, [handleScroll])
 
   return (
-    <div className="py-4 h-full flex flex-col gap-8">
+    <div className=" pt-2 h-full flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-secondary py-5">Unanswered mails ({totalCount})</h2>
+
+        <button
+          onClick={refresh}
+          disabled={loading}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          {loading ? 'Refreshing...' : 'Refresh mails'}
+        </button>
+      </div>
       <ul ref={listRef} className="flex flex-col gap-3 flex-1 overflow-y-auto scrollbar-hide">
         {Array.isArray(unansweredMails) && unansweredMails.length > 0 ? (
           <>
@@ -79,28 +98,6 @@ export default function MailWindow({
           <li>No mails found.</li>
         )}
       </ul>
-      <div className="flex items-center justify-between gap-2 mt-4">
-        <span className="text-sm text-gray-600">
-          {totalCount > 0
-            ? `${unansweredMails.length} / ${totalCount} mails`
-            : `${unansweredMails.length}`}
-        </span>
-        <button
-          onClick={refresh}
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
-          {loading ? 'Refreshing...' : 'Refresh mails'}
-        </button>
-      </div>
     </div>
   )
 }

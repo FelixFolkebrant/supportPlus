@@ -4,13 +4,13 @@ import { ChatMessageBubble } from './ChatMessageBubble'
 type ChatWindowProps = {
   messages: ChatMessage[]
   loading: boolean
-  onShowKnowledgeTab?: () => void
+  onShowSettingsTab?: () => void
 }
 
 export function ChatWindow({
   messages,
   loading,
-  onShowKnowledgeTab
+  onShowSettingsTab
 }: ChatWindowProps): React.JSX.Element {
   const showInstruction = messages.length === 0 && !loading
   return (
@@ -18,15 +18,15 @@ export function ChatWindow({
       {showInstruction ? (
         <div className="flex flex-1 items-center justify-center w-full h-full">
           <div className="text-center text-gray-400 p-4 select-none w-full max-w-xl mx-auto">
-            This is your <b>Mail Assistant</b>. It can help you create and edit emails based on your{' '}
+            This is your <b>Mail Assistant</b>. It can help you create and edit emails based on your documents in your{' '}
             <button
               className="underline text-blue-400 hover:text-blue-600 focus:outline-none bg-transparent border-none cursor-pointer p-0 m-0"
               style={{ background: 'none' }}
-              onClick={onShowKnowledgeTab}
+              onClick={onShowSettingsTab}
             >
-              knowledge
+              Google Drive Folder
             </button>
-            . Add documents to the knowledge base to improve its answers!
+            . Add documents (FAQ, instructions, policies) to the folder to improve its answers!
           </div>
         </div>
       ) : (

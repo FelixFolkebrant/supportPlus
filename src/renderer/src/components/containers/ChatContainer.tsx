@@ -14,7 +14,7 @@ interface ChatContainerProps {
   setMailEditingState?: (isEditing: boolean) => void
 }
 
-type TabType = 'chat' | 'documents'
+type TabType = 'chat' | 'settings'
 
 export function ChatContainer({
   selectedMail,
@@ -57,7 +57,7 @@ export function ChatContainer({
   return (
     <div className="flex-none w-full bg-white text-black h-full flex flex-col relative">
       {/* Tab Header */}
-      <div className="h-14 flex items-center px-4 bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="h-20 flex items-center px-4 bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="flex space-x-4 flex-1">
           <button
             onClick={() => setActiveTab('chat')}
@@ -70,39 +70,26 @@ export function ChatContainer({
             Chat
           </button>
           <button
-            onClick={() => setActiveTab('documents')}
+            onClick={() => setActiveTab('settings')}
             className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors flex items-center space-x-2 ${
-              activeTab === 'documents'
+              activeTab === 'settings'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <span>Documents</span>
-            {knowledgeBaseFolder && (
-              <div className="flex items-center space-x-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>{selectedFiles.length}</span>
-              </div>
-            )}
+            <span>Settings</span>
           </button>
+          {activeTab === 'chat' && (
+            <div className="flex space-x-2">
+              <button
+                onClick={handleNewChat}
+                className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+              >
+                Clear chat
+              </button>
+            </div>
+          )}
         </div>
-
-        {activeTab === 'chat' && (
-          <div className="flex space-x-2">
-            <button
-              onClick={handleNewChat}
-              className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
-            >
-              Clear chat
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Tab Content */}
@@ -116,20 +103,20 @@ export function ChatContainer({
                   OpenAI API key required
                 </div>
                 <div className="mb-4 text-yellow-700 text-sm max-w-md">
-                  To use the chat, please add your OpenAI API key in the Documents tab.
+                  To use the chat, please add your OpenAI API key in the settings tab.
                 </div>
                 <button
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
-                  onClick={() => setActiveTab('documents')}
+                  onClick={() => setActiveTab('settings')}
                 >
-                  Go to Documents
+                  Go to Settings
                 </button>
               </div>
             ) : (
               <ChatWindow
                 messages={messages}
                 loading={loading}
-                onShowKnowledgeTab={() => setActiveTab('documents')}
+                onShowSettingsTab={() => setActiveTab('settings')}
               />
             )}
           </div>

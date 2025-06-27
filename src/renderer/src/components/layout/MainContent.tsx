@@ -90,7 +90,7 @@ export function MainContent(): React.JSX.Element {
       />
       <div
         style={{ width: chatWidth, minWidth: MIN_CHAT_WIDTH, maxWidth: MAX_CHAT_WIDTH }}
-        className="h-full pt-14 pb-4 flex-shrink-0"
+        className="h-full pb-4 flex-shrink-0"
       >
         <ChatContainer
           selectedMail={selectedMail}

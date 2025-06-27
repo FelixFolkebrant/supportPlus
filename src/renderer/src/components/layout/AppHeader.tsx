@@ -56,11 +56,11 @@ export function AppHeader({
   }, [])
 
   return (
-    <div className="flex h-14 absolute w-full z-100 bg-transparent items-center justify-between text-black text-xl font-bold">
+    <div className="flex h-20 pointer-events-none absolute w-full z-100 bg-transparent items-center justify-between text-black text-xl font-bold">
       <div className="h-full flex items-stretch">
-        <Logo className="h-full w-auto" />
+        {/* <Logo className="h-full w-auto" /> */}
       </div>
-      <div className="relative pr-4" ref={dropdownRef}>
+      <div className="relative pointer-events-auto pr-4" ref={dropdownRef}>
         <button
           onClick={toggleDropdown}
           className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none"
