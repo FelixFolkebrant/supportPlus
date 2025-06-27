@@ -92,7 +92,7 @@ export function DocumentsTab(): React.JSX.Element {
   }
 
   return (
-    <div className="flex-1 gap-6 pt-6 flex-col flex overflow-y-auto p-4">
+    <div className="flex-1 gap-6  flex-col flex overflow-y-auto p-4">
       {/* OpenAI API Key Configuration */}
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <div className="flex items-center justify-between mb-3">

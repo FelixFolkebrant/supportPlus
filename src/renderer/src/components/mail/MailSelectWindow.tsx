@@ -38,7 +38,7 @@ export default function MailSelectWindow({
   }, [handleScroll])
 
   return (
-    <div className=" pt-2 h-full flex flex-col gap-4">
+    <div className="h-full pt-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-secondary py-5">Unanswered mails ({totalCount})</h2>
 

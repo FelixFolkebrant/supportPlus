@@ -43,6 +43,23 @@ ipcMain.handle('gmail:sendReply', async (_event, { messageId, body }) => {
   return await sendReply(messageId, body)
 })
 
+ipcMain.on('window:minimize', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender)
+  window?.minimize()
+})
+ipcMain.on('window:maximize', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender)
+  if (window?.isMaximized()) {
+    window.unmaximize()
+  } else {
+    window?.maximize()
+  }
+})
+ipcMain.on('window:close', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender)
+  window?.close()
+})
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -51,7 +68,7 @@ function createWindow(): void {
     resizable: true, // Allow window to be resizable
     fullscreenable: true, // Allow fullscreen mode
     fullscreen: false, // Not true, so not native fullscreen
-    frame: true, // Show window frame like a normal browser
+    frame: false, // Show window frame like a normal browser
     width: 1280, // Typical browser window size
     height: 800,
     ...(process.platform === 'linux' ? { icon } : {}),

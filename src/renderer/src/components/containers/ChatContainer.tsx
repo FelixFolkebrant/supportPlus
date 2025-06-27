@@ -55,13 +55,13 @@ export function ChatContainer({
   }
 
   return (
-    <div className="flex-none w-full bg-white text-black h-full flex flex-col relative">
+    <div className="flex-none w-full pt-12 bg-white text-black h-full flex flex-col relative">
       {/* Tab Header */}
-      <div className="h-20 flex items-center px-4 bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="flex space-x-4 flex-1">
+      <div className="py-4 flex items-center px-4 bg-white sticky top-0 z-10">
+        <div className="flex space-x-4 flex-1 justify-center">
           <button
             onClick={() => setActiveTab('chat')}
-            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+            className={`px-12 py-2 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'chat'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -71,7 +71,7 @@ export function ChatContainer({
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors flex items-center space-x-2 ${
+            className={`px-12 py-2 font-medium text-sm border-b-2 transition-colors flex items-center space-x-2 ${
               activeTab === 'settings'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -79,17 +79,17 @@ export function ChatContainer({
           >
             <span>Settings</span>
           </button>
-          {activeTab === 'chat' && (
-            <div className="flex space-x-2">
+        </div>
+          {activeTab === 'chat' && messages.length > 0 && (
+            <div className="flex absolute right-4 space-x-2">
               <button
                 onClick={handleNewChat}
-                className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+                className="px-3 py-2 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium shadow-sm"
               >
                 Clear chat
               </button>
             </div>
           )}
-        </div>
       </div>
 
       {/* Tab Content */}

@@ -75,10 +75,14 @@ export function MainContent(): React.JSX.Element {
       <div
         style={{
           cursor: 'col-resize',
-          width: 6,
+          width: 12,
           margin: '0 2px',
           zIndex: 10,
-          boxShadow: '-4px 0 8px -2px rgba(0,0,0,0.10)'
+          boxShadow: '-4px 0 8px -2px rgba(0,0,0,0.10)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
         }}
         className="active:bg-gray-400 transition-colors h-full"
         onMouseDown={() => {
@@ -87,7 +91,17 @@ export function MainContent(): React.JSX.Element {
         role="separator"
         aria-orientation="vertical"
         tabIndex={0}
-      />
+      >
+        <div
+          style={{
+            width: 4,
+            height: 48,
+            borderRadius: 2,
+            background: '#cbd5e1',
+            margin: 'auto',
+          }}
+        />
+      </div>
       <div
         style={{ width: chatWidth, minWidth: MIN_CHAT_WIDTH, maxWidth: MAX_CHAT_WIDTH }}
         className="h-full pb-4 flex-shrink-0"
