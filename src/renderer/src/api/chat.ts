@@ -1,4 +1,5 @@
 import { Personality } from '../api/personalities'
+import { generateAutoDraft } from './openai'
 
 export type ChatMessage = {
   role: 'user' | 'assistant' | 'system'
@@ -27,6 +28,26 @@ const RESPONSE_MAIL_FUNCTIONS = [
       },
       required: ['content', 'explanation']
     }
+  },
+  {
+    name: 'generate_auto_draft',
+    description:
+      'Generate a professional email response draft based on the original email content and user instructions',
+    parameters: {
+      type: 'object',
+      properties: {
+        userInstructions: {
+          type: 'string',
+          description:
+            'The user\'s specific instructions for the email draft (e.g., "polite response", "formal reply", "request more information")'
+        },
+        explanation: {
+          type: 'string',
+          description: 'A brief explanation of what type of draft was generated'
+        }
+      },
+      required: ['userInstructions', 'explanation']
+    }
   }
 ]
 
@@ -36,7 +57,8 @@ export async function chatWithOpenAI(
   onToken: (token: string) => void,
   selectedMailId?: string,
   updateResponseMail?: ResponseMailUpdateFunction,
-  setMailEditingState?: MailEditingStateFunction
+  setMailEditingState?: MailEditingStateFunction,
+  originalEmailContent?: string
 ): Promise<void> {
   const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 
@@ -118,6 +140,38 @@ export async function chatWithOpenAI(
                     setMailEditingState(false)
                   }
                 }
+              } else if (
+                functionCall.name === 'generate_auto_draft' &&
+                functionCall.arguments &&
+                updateResponseMail &&
+                selectedMailId &&
+                originalEmailContent
+              ) {
+                try {
+                  const args = JSON.parse(functionCall.arguments)
+                  // Set editing state when generating auto-draft
+                  if (setMailEditingState) {
+                    setMailEditingState(true)
+                  }
+                  // Generate the auto-draft using the original email content
+                  const draftContent = await generateAutoDraft(
+                    originalEmailContent,
+                    args.userInstructions
+                  )
+                  updateResponseMail(selectedMailId, draftContent)
+                  onToken(`\n\n✨ **Auto-draft generated:** ${args.explanation}`)
+                  // Clear editing state after the draft is complete
+                  if (setMailEditingState) {
+                    setMailEditingState(false)
+                  }
+                } catch (e) {
+                  console.error('Error generating auto-draft:', e)
+                  onToken('\n\n❌ **Failed to generate auto-draft.** Please try again.')
+                  // Clear editing state on error too
+                  if (setMailEditingState) {
+                    setMailEditingState(false)
+                  }
+                }
               }
               return
             }
@@ -129,8 +183,12 @@ export async function chatWithOpenAI(
               if (delta?.function_call) {
                 if (delta.function_call.name) {
                   functionCall.name = delta.function_call.name
-                  // Set editing state when we start receiving a function call for updating mail
-                  if (delta.function_call.name === 'update_response_mail' && setMailEditingState) {
+                  // Set editing state when we start receiving a function call for updating mail or generating auto-draft
+                  if (
+                    (delta.function_call.name === 'update_response_mail' ||
+                      delta.function_call.name === 'generate_auto_draft') &&
+                    setMailEditingState
+                  ) {
                     setMailEditingState(true)
                   }
                 }

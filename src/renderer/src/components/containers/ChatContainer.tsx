@@ -98,7 +98,7 @@ export function ChatContainer({
               onClick={handleNewChat}
               className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
             >
-              New Chat
+              Clear chat
             </button>
           </div>
         )}

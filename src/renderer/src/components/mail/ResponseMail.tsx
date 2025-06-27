@@ -9,6 +9,7 @@ import React, {
 import type { Mail } from '../../hooks/GmailContextValue'
 import { SendButton } from '../SendButton'
 import { useEmail } from '../../hooks/useEmail'
+import { generateAutoDraft } from '../../api/openai'
 
 interface ResponseMailRef {
   updateContent: (newContent: string) => void
@@ -33,6 +34,9 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
   const [formatVersion, setFormatVersion] = useState(0)
   const [localIsAiEditing, setLocalIsAiEditing] = useState(false)
   const [sendStatus, setSendStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
+  const [autoDrafting, setAutoDrafting] = useState(false)
+  const [autoDraftError, setAutoDraftError] = useState<string | null>(null)
+  const [editorContentVersion, setEditorContentVersion] = useState(0)
   const editorRef = useRef<HTMLDivElement>(null)
   const { sendReplyEmail, sendingReply } = useEmail(mail)
 
@@ -60,6 +64,7 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
       localStorage.setItem(storageKey, newContent)
       if (editorRef.current) {
         editorRef.current.innerHTML = newContent
+        setEditorContentVersion((v) => v + 1)
       }
     },
     [storageKey]
@@ -130,6 +135,38 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
     }
   }
 
+  // Handler for auto-draft button
+  const handleAutoDraft = async (): Promise<void> => {
+    setAutoDrafting(true)
+    setLocalIsAiEditing(true)
+    setAutoDraftError(null) // Clear any previous errors
+    try {
+      // Get the original email content for context
+      const originalEmailContent = `
+        From: ${mail.from}
+        Subject: ${mail.subject}
+        Date: ${mail.date}
+        
+        ${mail.body || mail.snippet}
+      `
+
+      const draftContent = await generateAutoDraft(originalEmailContent)
+
+      // Update the editor with the generated content
+      if (editorRef.current) {
+        editorRef.current.innerHTML = draftContent
+        localStorage.setItem(storageKey, draftContent)
+        setEditorContentVersion((v) => v + 1)
+      }
+    } catch (error) {
+      console.error('Auto-draft error:', error)
+      setAutoDraftError(error instanceof Error ? error.message : 'Failed to generate auto-draft')
+    } finally {
+      setAutoDrafting(false)
+      setLocalIsAiEditing(false)
+    }
+  }
+
   // Reset sendStatus when mail changes
   useEffect(() => {
     setSendStatus('idle')
@@ -181,6 +218,36 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
 
           {sendStatus === 'idle' && (
             <div className="space-y-4">
+              {/* Auto-draft Error Display */}
+              {autoDraftError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="font-medium">Auto-draft failed:</span>
+                    <span>{autoDraftError}</span>
+                    <button
+                      onClick={() => setAutoDraftError(null)}
+                      className="ml-auto text-red-500 hover:text-red-700"
+                      title="Dismiss error"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Formatting Toolbar */}
               <div
                 className="flex items-center gap-1 p-2 bg-gray-50 rounded-lg border"
@@ -256,7 +323,7 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
                 />
 
                 {/* Custom placeholder */}
-                {!getEditorText() && !isFocused && !isAiEditing && (
+                {!getEditorText() && !isFocused && !isAiEditing && editorContentVersion >= 0 && (
                   <div className="absolute top-4 left-4 text-gray-400 pointer-events-none">
                     Type your reply here...
                   </div>
@@ -281,8 +348,11 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
               <div className="flex justify-end pt-2">
                 <SendButton
                   onSend={handleSend}
+                  onAutoDraft={handleAutoDraft}
                   disabled={isAiEditing || !getEditorText()}
+                  autoDraftDisabled={isAiEditing}
                   loading={sendingReply}
+                  autoDrafting={autoDrafting}
                 />
               </div>
             </div>

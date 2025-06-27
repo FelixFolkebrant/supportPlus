@@ -62,7 +62,7 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
   const sendMessage = async (): Promise<void> => {
     if (!input.trim() || loading) return
 
-    // Check if the message might be requesting a mail edit
+    // Check if the message might be requesting a mail edit or auto-draft
     const couldBeMaiEditing =
       selectedMail &&
       (input.toLowerCase().includes('edit') ||
@@ -78,8 +78,19 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
         input.toLowerCase().includes('professional') ||
         input.toLowerCase().includes('friendly'))
 
-    // If we think this might be a mail editing request, set the loading state early
-    if (couldBeMaiEditing && mailEditingStateRef.current) {
+    const couldBeAutoDraft =
+      selectedMail &&
+      (input.toLowerCase().includes('draft') ||
+        input.toLowerCase().includes('write') ||
+        input.toLowerCase().includes('compose') ||
+        input.toLowerCase().includes('create') ||
+        input.toLowerCase().includes('generate') ||
+        input.toLowerCase().includes('response') ||
+        input.toLowerCase().includes('reply') ||
+        input.toLowerCase().includes('answer'))
+
+    // If we think this might be a mail editing request or auto-draft, set the loading state early
+    if ((couldBeMaiEditing || couldBeAutoDraft) && mailEditingStateRef.current) {
       mailEditingStateRef.current(true)
     }
 
@@ -130,12 +141,15 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
         },
         selectedMail?.id,
         updateResponseMailRef.current,
-        mailEditingStateRef.current
+        mailEditingStateRef.current,
+        selectedMail
+          ? `From: ${selectedMail.from}\nSubject: ${selectedMail.subject}\nDate: ${selectedMail.date}\n\n${selectedMail.body || selectedMail.snippet}`
+          : undefined
       )
     } catch (error) {
       console.error('Chat API error:', error)
       // Clear editing state on error
-      if (couldBeMaiEditing && mailEditingStateRef.current) {
+      if ((couldBeMaiEditing || couldBeAutoDraft) && mailEditingStateRef.current) {
         mailEditingStateRef.current(false)
       }
       setMessages((prevMessages) => [
@@ -146,7 +160,7 @@ export function useChat(selectedMail?: Mail | null): UseChatReturn {
       setLoading(false)
       // Clear editing state if no function was called (i.e., regular chat response)
       // This will be overridden by the chat API if a function call actually happens
-      if (couldBeMaiEditing && mailEditingStateRef.current) {
+      if ((couldBeMaiEditing || couldBeAutoDraft) && mailEditingStateRef.current) {
         setTimeout(() => {
           if (mailEditingStateRef.current) {
             mailEditingStateRef.current(false)
