@@ -39,7 +39,7 @@ export default function MailWindow({
 
   return (
     <div className="py-4 h-full flex flex-col gap-8">
-      <ul ref={listRef} className="flex flex-col gap-3 flex-1 overflow-y-auto">
+      <ul ref={listRef} className="flex flex-col gap-3 flex-1 overflow-y-auto scrollbar-hide">
         {Array.isArray(unansweredMails) && unansweredMails.length > 0 ? (
           <>
             {unansweredMails.map((m) => (
@@ -82,7 +82,7 @@ export default function MailWindow({
       <div className="flex items-center justify-between gap-2 mt-4">
         <span className="text-sm text-gray-600">
           {totalCount > 0
-            ? `${unansweredMails.length} / ${totalCount} mails loaded`
+            ? `${unansweredMails.length} / ${totalCount} mails`
             : `${unansweredMails.length}`}
         </span>
         <button

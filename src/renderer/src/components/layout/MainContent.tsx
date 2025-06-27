@@ -62,10 +62,7 @@ export function MainContent(): React.JSX.Element {
   }, [])
 
   return (
-    <div
-      id="main-content-container"
-      className="flex pl-2 flex-1 h-full w-full overflow-hidden"
-    >
+    <div id="main-content-container" className="flex pl-2 flex-1 h-full w-full overflow-hidden">
       <div className="flex-1 h-full min-w-0">
         <MailContainer
           selectedMail={selectedMail}

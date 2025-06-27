@@ -1,9 +1,11 @@
+@import './scrollbar-hide.css';
 @import './base.css';
 @import 'tailwindcss';
 @theme {
   --color-primary: #3059ff;
   --color-secondary: #54575c;
   --color-third: #686b71;
+  --color-bluer: #E6EAFA;
 }
 html,
 body {

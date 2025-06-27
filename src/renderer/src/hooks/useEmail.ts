@@ -22,7 +22,7 @@ export function useEmail(mail: Mail): UseEmailReturn {
         messageId: mail.id,
         body
       })
-      
+
       // Clear the saved draft after successful send
       localStorage.removeItem(`responseMail:${mail.id}`)
     } catch (error) {

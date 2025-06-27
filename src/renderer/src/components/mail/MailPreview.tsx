@@ -41,12 +41,24 @@ const MailPreview: React.FC<MailPreviewProps> = ({ subject, from, active, date }
     {/* Content overlay */}
     <div className="relative z-10 w-full p-4 flex flex-col h-full">
       <div className="flex flex-row items-center justify-between w-full">
-        <div className="font-medium text-third leading-5 text-xl max-w-5/6">{subject}</div>
-        <div className="text-third/70 text-sm whitespace-nowrap ml-6 relative right-5">
+        <div
+          className={`font-medium leading-5 text-xl max-w-5/6 ${
+            active ? 'text-black' : 'text-third/90'
+          }`}
+        >
+          {subject}
+        </div>
+        <div
+          className={`text-sm whitespace-nowrap ml-6 relative right-5 ${
+            active ? 'text-secondary' : 'text-third/70'
+          }`}
+        >
           {formatTime(date)}
         </div>
       </div>
-      <div className="text-third leading-7 text-base mt-1">{getNameOnly(from)}</div>
+      <div className={`leading-7 text-base mt-1 ${active ? 'text-secondary' : 'text-third/70'}`}>
+        {getNameOnly(from)}
+      </div>
       {/* <p className="text-sm justify-start max-h-[54px] text-third relative overflow-clip">
         {snippet?.slice(0, 100) + '...'}
       </p> */}

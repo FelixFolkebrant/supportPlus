@@ -51,7 +51,7 @@ export function ChatContainer({
     clearMessages()
   }
   return (
-    <div className="flex-none w-full border-l border-gray-200 bg-white text-black h-full flex flex-col relative">
+    <div className="flex-none w-full bg-white text-black h-full flex flex-col relative">
       {' '}
       {/* Chat Header */}
       <div className="h-14 flex items-center px-4 bg-white font-semibold text-lg sticky top-0 z-10 justify-between">
