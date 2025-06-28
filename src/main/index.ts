@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -8,6 +8,15 @@ import { getUnansweredEmails, getUnansweredEmailsCount } from './google/getUnans
 import { getGmailClient, hasValidToken, logout as gmailLogout, sendReply } from './google/auth'
 import { getUserProfile } from './google/getUserProfile'
 import { setupDriveHandlers } from './google/drive'
+
+import { autoUpdater } from 'electron-updater'
+import log from 'electron-log'
+
+// Setup logging
+autoUpdater.logger = log
+autoUpdater.logger.transports.file.level = 'info'
+
+// Check for updates only when app is packaged
 
 ipcMain.handle('gmail:getMails', async (_event, args) => {
   return await getEmails(args)
@@ -123,6 +132,24 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  if (!is.dev) {
+    autoUpdater.checkForUpdatesAndNotify()
+
+    autoUpdater.on('update-downloaded', () => {
+      const result = dialog.showMessageBoxSync({
+        type: 'info',
+        buttons: ['Restart Now', 'Later'],
+        defaultId: 0,
+        message:
+          'A new update has been downloaded. Would you like to restart the app to apply it now?'
+      })
+
+      if (result === 0) {
+        autoUpdater.quitAndInstall()
+      }
+    })
+  }
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
