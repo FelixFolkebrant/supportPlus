@@ -73,7 +73,13 @@
       "package.json"
     ],
     "directories": {
-      "buildResources": "assets"
+      "buildResources": "resources"
+    },
+    "win": {
+      "icon": "icon.ico"
+    },
+    "linux": {
+      "icon": "icon.png"
     },
     "publish": {
       "provider": "github"
