@@ -14,7 +14,15 @@ import log from 'electron-log'
 
 // Setup logging
 autoUpdater.logger = log
-autoUpdater.logger.transports.file.level = 'info'
+// Type assertion needed to access transports property not in public API
+interface LoggerWithTransports {
+  transports: {
+    file: {
+      level: string
+    }
+  }
+}
+;(autoUpdater.logger as unknown as LoggerWithTransports).transports.file.level = 'info'
 
 // Check for updates only when app is packaged
 
@@ -83,7 +91,8 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      contextIsolation: true // Enable context isolation for security
     }
   })
 

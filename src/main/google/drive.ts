@@ -1,6 +1,5 @@
 import { ipcMain } from 'electron'
 import { getDriveClient } from './auth'
-import type { drive_v3 } from 'googleapis'
 
 interface DriveFile {
   id: string
@@ -80,8 +79,8 @@ export function setupDriveHandlers(): void {
         id: file.id!,
         name: file.name!,
         mimeType: file.mimeType!,
-        webViewLink: file.webViewLink,
-        modifiedTime: file.modifiedTime
+        webViewLink: file.webViewLink || undefined,
+        modifiedTime: file.modifiedTime || undefined
       }))
 
       return {
@@ -129,7 +128,7 @@ export function setupDriveHandlers(): void {
         content = response.data as string
       } else if (mimeType === 'application/pdf') {
         // PDF files - get the file content (you might need a PDF parser)
-        const response = await drive.files.get({
+        await drive.files.get({
           fileId,
           alt: 'media'
         })
@@ -174,8 +173,8 @@ export function setupDriveHandlers(): void {
         id: file.id!,
         name: file.name!,
         mimeType: file.mimeType!,
-        webViewLink: file.webViewLink,
-        modifiedTime: file.modifiedTime
+        webViewLink: file.webViewLink || undefined,
+        modifiedTime: file.modifiedTime || undefined
       }))
 
       return {

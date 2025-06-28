@@ -7,7 +7,7 @@ import {
 } from '../api/chat'
 import { DEFAULT_PERSONALITY } from '../api/personalities'
 import type { Mail } from './GmailContextValue'
-import { useDrive } from './DriveContext'
+import { useDrive } from './useDrive'
 
 interface UseChatReturn {
   messages: ChatMessage[]

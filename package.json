@@ -1,9 +1,9 @@
 {
-  "name": "personalities",
+  "name": "supportplus",
   "version": "1.0.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "Felix Folkebrant",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "prettier --write .",
@@ -21,7 +21,8 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:linux": "electron-vite build && electron-builder --linux",
+    "dist": "npm run build && electron-builder"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
@@ -61,5 +62,27 @@
     "tailwindcss": "^4.1.10",
     "typescript": "^5.8.3",
     "vite": "^6.2.6"
+  },
+  "build": {
+    "appId": "com.yourname.supportplus",
+    "productName": "SupportPlus",
+    "files": [
+      "dist/",
+      "out/",
+      "node_modules/",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "publish": {
+      "provider": "github"
+    },
+    "extraResources": [
+      {
+        "from": "credentials.json",
+        "to": "credentials.json"
+      }
+    ]
   }
 }

@@ -4,7 +4,7 @@ import { ChatWindow } from '../chat/ChatWindow'
 import { ChatInput } from '../chat/ChatInput'
 import { DocumentsTab } from '../chat/DocumentsTab'
 import { useChat } from '../../hooks/useChat'
-import { useDrive } from '../../hooks/DriveContext'
+import { useDrive } from '../../hooks/useDrive'
 import type { Mail } from '../../hooks/GmailContextValue'
 import { hasValidOpenAIApiKey } from '../../api/apiKeyManager'
 
@@ -34,7 +34,8 @@ export function ChatContainer({
     setMailEditingState: setChatMailEditingState
   } = useChat(selectedMail)
 
-  const { knowledgeBaseFolder, selectedFiles } = useDrive()
+  // Note: Drive context is available for future use
+  useDrive()
 
   // Set the update function for the chat hook
   useEffect(() => {
@@ -80,16 +81,16 @@ export function ChatContainer({
             <span>Settings</span>
           </button>
         </div>
-          {activeTab === 'chat' && messages.length > 0 && (
-            <div className="flex absolute right-4 space-x-2">
-              <button
-                onClick={handleNewChat}
-                className="px-3 py-2 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium shadow-sm"
-              >
-                Clear chat
-              </button>
-            </div>
-          )}
+        {activeTab === 'chat' && messages.length > 0 && (
+          <div className="flex absolute right-4 space-x-2">
+            <button
+              onClick={handleNewChat}
+              className="px-3 py-2 rounded bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium shadow-sm"
+            >
+              Clear chat
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tab Content */}

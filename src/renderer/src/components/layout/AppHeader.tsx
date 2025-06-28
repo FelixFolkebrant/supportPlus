@@ -1,6 +1,4 @@
-import type React from 'react'
-import { useState, useRef, useEffect } from 'react'
-import Logo from '../ui/Logo'
+import React, { useState, useRef, useEffect } from 'react'
 
 interface AppHeaderProps {
   onLogout: () => void
@@ -58,20 +56,20 @@ export function AppHeader({
   return (
     <div
       className="flex h-14 pointer-events-none absolute bg-transparent w-full z-100 items-center justify-between text-black text-xl font-bold"
-      style={{ WebkitAppRegion: 'drag' }}
+      style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
     >
       <div className="h-full flex items-center pointer-events-auto">
         {/* <Logo className="h-full w-auto" /> */}
       </div>
       <div
         className="flex items-center gap-2 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-auto"
-        style={{ WebkitAppRegion: 'no-drag' }}
+        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
       >
         {/* Profile section moved here */}
         <div
           className="relative pointer-events-auto pr-2"
           ref={dropdownRef}
-          style={{ WebkitAppRegion: 'no-drag' }}
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
           <button
             onClick={toggleDropdown}
@@ -127,7 +125,7 @@ export function AppHeader({
         <button
           aria-label="Minimize"
           className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 transition"
-          style={{ WebkitAppRegion: 'no-drag' }}
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           onClick={() => window.api?.minimize?.()}
         >
           <svg width="12" height="2" viewBox="0 0 12 2" fill="none">
@@ -137,7 +135,7 @@ export function AppHeader({
         <button
           aria-label="Maximize"
           className="w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 transition"
-          style={{ WebkitAppRegion: 'no-drag' }}
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           onClick={() => window.api?.maximize?.()}
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -147,7 +145,7 @@ export function AppHeader({
         <button
           aria-label="Close"
           className="w-8 h-8 flex items-center justify-center rounded hover:bg-red-500 hover:text-white transition"
-          style={{ WebkitAppRegion: 'no-drag' }}
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           onClick={() => window.api?.close?.()}
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">

@@ -1,7 +1,7 @@
 import { ChatMessage } from '../../api/chat'
 import { ChatMessageBubble } from './ChatMessageBubble'
 import { AnimatePresence, motion } from '../mail/framerMotion'
-import React, { useEffect, useRef, useState } from 'react'
+import React from 'react'
 
 type ChatWindowProps = {
   messages: ChatMessage[]
@@ -50,7 +50,7 @@ export function ChatWindow({
               if (shouldAnimate) {
                 return (
                   <motion.div
-                    key={msg.id ?? i}
+                    key={i}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -65,7 +65,7 @@ export function ChatWindow({
                   </motion.div>
                 )
               } else {
-                return <ChatMessageBubble key={msg.id ?? i} msg={msg} />
+                return <ChatMessageBubble key={i} msg={msg} />
               }
             })}
             {loading && <div className="text-left text-gray-400">Assistant is typing...</div>}

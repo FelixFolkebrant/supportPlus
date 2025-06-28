@@ -1,6 +1,7 @@
 # Knowledge Base Integration - Final Setup Steps
 
 ## 1. Main Process Integration
+
 Add the following to your main process entry file (usually `src/main/index.ts`):
 
 ```typescript
@@ -11,6 +12,7 @@ setupDriveHandlers()
 ```
 
 ## 2. App Provider Setup
+
 Wrap your App component with the DriveProvider:
 
 ```typescript
@@ -30,6 +32,7 @@ export function App() {
 ```
 
 ## 3. Chat Integration
+
 Update your existing `useChat` hook to integrate knowledge base context:
 
 ```typescript
@@ -41,16 +44,16 @@ const { selectedFiles } = useDrive()
 // When sending messages, include knowledge base context:
 const sendMessage = async (message: string) => {
   // ... existing code ...
-  
+
   let knowledgeContext = ''
   if (selectedFiles.length > 0) {
-    knowledgeContext = `\n\nKnowledge Base Context:\n${selectedFiles.map(file => 
-      `=== ${file.name} ===\n${file.content}`
-    ).join('\n\n')}`
+    knowledgeContext = `\n\nKnowledge Base Context:\n${selectedFiles
+      .map((file) => `=== ${file.name} ===\n${file.content}`)
+      .join('\n\n')}`
   }
 
   const fullPrompt = message + emailContext + knowledgeContext
-  
+
   // Send fullPrompt to your AI service
 }
 ```
@@ -58,22 +61,26 @@ const sendMessage = async (message: string) => {
 ## 4. Features Implemented
 
 ### UI Components
+
 - **Add Documents Button**: Green button next to "New" in chat header
 - **Knowledge Base Modal**: Shows connected folder and loaded documents
 - **Folder Picker**: Allows users to select from their Google Drive folders
 - **Visual Indicator**: Shows number of connected docs in chat header
 
 ### Backend Integration
+
 - **Google Drive OAuth**: Extended existing auth to include Drive scope
 - **File Content Extraction**: Supports Google Docs, Sheets, PDFs, and text files
 - **Folder Management**: List, select, and refresh Drive folders
 
 ### Context Integration
+
 - **Knowledge Base Context**: Automatically includes document content in AI prompts
 - **Email Context**: Maintains existing email integration
 - **Real-time Updates**: Refresh folder contents and file changes
 
 ## 5. Usage Flow
+
 1. User clicks "Add Documents" button
 2. Folder picker opens showing Google Drive folders
 3. User selects a folder containing docs/sheets/PDFs
@@ -83,6 +90,7 @@ const sendMessage = async (message: string) => {
 7. User can refresh or disconnect the knowledge base anytime
 
 ## 6. Error Handling
+
 - OAuth token refresh for Drive access
 - File type validation and extraction errors
 - Network connectivity issues

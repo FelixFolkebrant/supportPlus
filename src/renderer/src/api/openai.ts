@@ -5,7 +5,7 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
 export async function getHorrorStory(prompt: string): Promise<string> {
   const OPENAI_API_KEY = getOpenAIApiKey()
-  
+
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key is not configured. Please add your API key in the settings.')
   }
@@ -39,7 +39,7 @@ export async function getHorrorStoryStream(
   onToken: (token: string) => void
 ): Promise<void> {
   const OPENAI_API_KEY = getOpenAIApiKey()
-  
+
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key is not configured. Please add your API key in the settings.')
   }
@@ -97,7 +97,7 @@ export async function generateAutoDraft(
   userInstructions?: string
 ): Promise<string> {
   const OPENAI_API_KEY = getOpenAIApiKey()
-  
+
   if (!OPENAI_API_KEY) {
     throw new Error('OpenAI API key is not configured. Please add your API key in the settings.')
   }

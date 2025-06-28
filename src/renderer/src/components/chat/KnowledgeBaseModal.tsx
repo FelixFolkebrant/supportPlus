@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type React from 'react'
-import { useDrive } from '../../hooks/DriveContext'
+import { useDrive } from '../../hooks/useDrive'
 import { FolderPicker } from './FolderPicker'
 
 interface KnowledgeBaseModalProps {

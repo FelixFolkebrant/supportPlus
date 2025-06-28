@@ -16,14 +16,12 @@ declare global {
 interface MailContainerProps {
   selectedMail: Mail | null
   setSelectedMail: (mail: Mail | null) => void
-  onUpdateResponseMail?: (mailId: string, content: string) => void
   onRegisterMailEditingState?: (setEditingState: (isEditing: boolean) => void) => void
 }
 
 export function MailContainer({
   selectedMail,
   setSelectedMail,
-  onUpdateResponseMail,
   onRegisterMailEditingState
 }: MailContainerProps): React.JSX.Element {
   const { removeUnansweredMail } = useGmail() // <-- Use the hook
@@ -41,7 +39,7 @@ export function MailContainer({
   }
 
   // Remove mail from list and clear selection after send
-  const handleMailSent = () => {
+  const handleMailSent = (): void => {
     if (selectedMail && selectedMail.id) {
       removeUnansweredMail(selectedMail.id)
       setSelectedMail(null)
@@ -51,9 +49,7 @@ export function MailContainer({
   return (
     <div className="flex h-screen w-full">
       {/* Left: MailWindow grows to content */}
-      <div
-        className="flex-none xl:flex hidden bg-white h-full z-10 px-4 py-2"
-      >
+      <div className="flex-none xl:flex hidden bg-white h-full z-10 px-4 py-2">
         <MailSelectWindow selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
       </div>
 

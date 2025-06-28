@@ -34,10 +34,10 @@ Vlas Bashynskyi's user avatar
 Vlas Bashynskyi
 2,02322 gold badges1717 silver badges2828 bronze badges
 
-    Do you want to respond to a single message or respond to the thread? – 
+    Do you want to respond to a single message or respond to the thread? –
     Tholle
     Commented Sep 15, 2015 at 15:48
-    I want to respond to a single message. – 
+    I want to respond to a single message. –
     Vlas Bashynskyi
     Commented Sep 15, 2015 at 15:52
 
@@ -65,92 +65,92 @@ GET https://www.googleapis.com/gmail/v1/users/me/messages/14fd1c555a1352b7?forma
 Response:
 
 {
- "id": "14fd1c555a1352b7",
- "threadId": "14fd1c52911f0f64",
- "labelIds": [
-  "SENT",
-  "INBOX",
-  "IMPORTANT",
-  "UNREAD"
- ],
- "snippet": "Next level dude 2015-09-15 18:10 GMT+02:00 Emil Tholin &lt;emtholin@gmail.com&gt;: wow 2015-09-15 18:",
- "historyId": "575289",
- "internalDate": "1442333414000",
- "payload": {
-  "mimeType": "multipart/alternative",
-  "headers": [
-   {
-    "name": "In-Reply-To",
-    "value": "<CADsZLRyzVPLRQuTthGSHKMCXL7Ora1jNW7h0jvoNgR+hU59BYg@mail.gmail.com>"
-   },
-   {
-    "name": "References",
-    "value": "<CADsZLRxZDUGn4Frx80qe2_bE5H5bQhgcqGk=GwFN9gs7Z_8oZw@mail.gmail.com> <CADsZLRyzVPLRQuTthGSHKMCXL7Ora1jNW7h0jvoNgR+hU59BYg@mail.gmail.com>"
-   },
-   {
-    "name": "Message-ID", // This is the same for both users, as you were asking about.
-    "value": "<CADsZLRwQWzLB-uq4_4G2E64NX9G6grn0cEeO0L=avY7ajzuAFg@mail.gmail.com>"
-   },
-   {
-    "name": "Subject",
-    "value": "Re: Cool"
-   }
-  ]
- },
- "sizeEstimate": 1890
+"id": "14fd1c555a1352b7",
+"threadId": "14fd1c52911f0f64",
+"labelIds": [
+"SENT",
+"INBOX",
+"IMPORTANT",
+"UNREAD"
+],
+"snippet": "Next level dude 2015-09-15 18:10 GMT+02:00 Emil Tholin &lt;emtholin@gmail.com&gt;: wow 2015-09-15 18:",
+"historyId": "575289",
+"internalDate": "1442333414000",
+"payload": {
+"mimeType": "multipart/alternative",
+"headers": [
+{
+"name": "In-Reply-To",
+"value": "<CADsZLRyzVPLRQuTthGSHKMCXL7Ora1jNW7h0jvoNgR+hU59BYg@mail.gmail.com>"
+},
+{
+"name": "References",
+"value": "<CADsZLRxZDUGn4Frx80qe2_bE5H5bQhgcqGk=GwFN9gs7Z_8oZw@mail.gmail.com> <CADsZLRyzVPLRQuTthGSHKMCXL7Ora1jNW7h0jvoNgR+hU59BYg@mail.gmail.com>"
+},
+{
+"name": "Message-ID", // This is the same for both users, as you were asking about.
+"value": "<CADsZLRwQWzLB-uq4_4G2E64NX9G6grn0cEeO0L=avY7ajzuAFg@mail.gmail.com>"
+},
+{
+"name": "Subject",
+"value": "Re: Cool"
+}
+]
+},
+"sizeEstimate": 1890
 }
 
 To follow the RFC 2822 standard we have added the Message-ID of the message we want to respond to to the References-header, separated with a space. The In-Reply-To-header also has the value of message we want to respond to. We also add Re: to our Subject-header to indicate that it is a response.
 
-// Base64-encode the mail and make it URL-safe 
-// (replace "+" with "-", replace "/" with "_", remove trailing "=")
+// Base64-encode the mail and make it URL-safe
+// (replace "+" with "-", replace "/" with "\_", remove trailing "=")
 var encodedResponse = btoa(
-  "Content-Type: text/plain; charset=\"UTF-8\"\n" +
-  "MIME-Version: 1.0\n" +
-  "Content-Transfer-Encoding: 7bit\n" +
-  "References: <CADsZLRxZDUGn4Frx80qe2_bE5H5bQhgcqGk=GwFN9gs7Z_8oZw@mail.gmail.com> <CADsZLRyzVPLRQuTthGSHKMCXL7Ora1jNW7h0jvoNgR+hU59BYg@mail.gmail.com> <CADsZLRwQWzLB-uq4_4G2E64NX9G6grn0cEeO0L=avY7ajzuAFg@mail.gmail.com>\n" +
-  "In-Reply-To: <CADsZLRwQWzLB-uq4_4G2E64NX9G6grn0cEeO0L=avY7ajzuAFg@mail.gmail.com>\n" +
-  "Subject: Re:Cool\n" +
-  "From: sender@gmail.com\n" +
-  "To: reciever@gmail.com\n\n" +
+"Content-Type: text/plain; charset=\"UTF-8\"\n" +
+"MIME-Version: 1.0\n" +
+"Content-Transfer-Encoding: 7bit\n" +
+"References: <CADsZLRxZDUGn4Frx80qe2_bE5H5bQhgcqGk=GwFN9gs7Z_8oZw@mail.gmail.com> <CADsZLRyzVPLRQuTthGSHKMCXL7Ora1jNW7h0jvoNgR+hU59BYg@mail.gmail.com> <CADsZLRwQWzLB-uq4_4G2E64NX9G6grn0cEeO0L=avY7ajzuAFg@mail.gmail.com>\n" +
+"In-Reply-To: <CADsZLRwQWzLB-uq4_4G2E64NX9G6grn0cEeO0L=avY7ajzuAFg@mail.gmail.com>\n" +
+"Subject: Re:Cool\n" +
+"From: sender@gmail.com\n" +
+"To: reciever@gmail.com\n\n" +
 
-  "This is where the response text will go"
-).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+"This is where the response text will go"
+).replace(/\+/g, '-').replace(/\//g, '\_').replace(/=+$/, '');
 
 $.ajax({
-  url: "https://www.googleapis.com/gmail/v1/users/me/messages/send?access_token=<USER_ACCESS_TOKEN>",
-  method: "POST",
-  contentType: "application/json",
-  data: JSON.stringify({
-    raw: encodedResponse
-  })
+url: "https://www.googleapis.com/gmail/v1/users/me/messages/send?access_token=<USER_ACCESS_TOKEN>",
+method: "POST",
+contentType: "application/json",
+data: JSON.stringify({
+raw: encodedResponse
+})
 });
 
 As you can see, this is a pain in the backside to to manually. You could also just respond to the thread. This might not be enough for your use case however.
 
 This way, you just have to supply the mail and the threadId, and make sure the Subject is the same, and Google will display it for you correctly.
 
-// Base64-encode the mail and make it URL-safe 
-// (replace "+" with "-", replace "/" with "_", remove trailing "=")
+// Base64-encode the mail and make it URL-safe
+// (replace "+" with "-", replace "/" with "\_", remove trailing "=")
 var encodedResponse = btoa(
-  "Content-Type: text/plain; charset=\"UTF-8\"\n" +
-  "MIME-Version: 1.0\n" +
-  "Content-Transfer-Encoding: 7bit\n" +
-  "Subject: Subject of the original mail\n" +
-  "From: sender@gmail.com\n" +
-  "To: reciever@gmail.com\n\n" +
+"Content-Type: text/plain; charset=\"UTF-8\"\n" +
+"MIME-Version: 1.0\n" +
+"Content-Transfer-Encoding: 7bit\n" +
+"Subject: Subject of the original mail\n" +
+"From: sender@gmail.com\n" +
+"To: reciever@gmail.com\n\n" +
 
-  "This is where the response text will go"
-).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+"This is where the response text will go"
+).replace(/\+/g, '-').replace(/\//g, '\_').replace(/=+$/, '');
 
 $.ajax({
-  url: "https://www.googleapis.com/gmail/v1/users/me/messages/send?access_token=<USER_ACCESS_TOKEN>",
-  method: "POST",
-  contentType: "application/json",
-  data: JSON.stringify({           
-    raw: encodedResponse,
-    threadId: "<THREAD_ID_OF_MESSAGE_TO_RESPOND_TO>"
-  })
+url: "https://www.googleapis.com/gmail/v1/users/me/messages/send?access_token=<USER_ACCESS_TOKEN>",
+method: "POST",
+contentType: "application/json",
+data: JSON.stringify({  
+ raw: encodedResponse,
+threadId: "<THREAD_ID_OF_MESSAGE_TO_RESPOND_TO>"
+})
 });
 
 Share
@@ -163,21 +163,21 @@ Tholle
 113k2222 gold badges209209 silver badges198198 bronze badges
 
     1
-    I tried the first solution given by you, but I am receiving 2 mails. One as a part of the mail thread and other is new. Second method fails with error "Invalid parameter". I am trying to add the draft to the thread, so far with no success. Google API documentation seems incorrect too. – 
+    I tried the first solution given by you, but I am receiving 2 mails. One as a part of the mail thread and other is new. Second method fails with error "Invalid parameter". I am trying to add the draft to the thread, so far with no success. Google API documentation seems incorrect too. –
     vikramaditya234
     Commented Feb 11, 2016 at 1:11
     1
-    @vikramaditya234 You could try this. – 
+    @vikramaditya234 You could try this. –
     Tholle
     Commented Feb 11, 2016 at 1:28
-    what happens if my existing message that I want to reply to don't have the headers References/In-Reply-To ? stackoverflow.com/questions/44880439/… – 
+    what happens if my existing message that I want to reply to don't have the headers References/In-Reply-To ? stackoverflow.com/questions/44880439/… –
     Tal Avissar
-    Commented Jul 3, 2017 at 8:06 
+    Commented Jul 3, 2017 at 8:06
 
-    Thank you for a great explanation and reference, it really helped me. Unfortunately first method is not working - i'm receiving separate email. However, once I added threadId as you suggesting in your second solution, I got email chain! – 
+    Thank you for a great explanation and reference, it really helped me. Unfortunately first method is not working - i'm receiving separate email. However, once I added threadId as you suggesting in your second solution, I got email chain! –
     Andrey Tagaew
     Commented Jul 26, 2019 at 6:25
-    @Tholle the workaround of passing 'ThreadID' in message object is not working anymore and the messages are not threaded. Is it because of new threading changes introduced by Google – 
+    @Tholle the workaround of passing 'ThreadID' in message object is not working anymore and the messages are not threaded. Is it because of new threading changes introduced by Google –
     zee
     Commented Sep 5, 2019 at 11:05
 
@@ -202,7 +202,6 @@ Gabriele Alfredo Pini
 10111 silver badge33 bronze badges
 
     1
-    Wow I managed to not realized this for 5.5 years! I turned off conversation view many many years ago probably because of this ambiguity. – 
+    Wow I managed to not realized this for 5.5 years! I turned off conversation view many many years ago probably because of this ambiguity. –
     Simon_Weaver
     Commented Dec 31, 2024 at 2:37
-

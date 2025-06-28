@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import type React from 'react'
-import { useDrive } from '../../hooks/DriveContext'
+import { useDrive } from '../../hooks/useDrive'
 import {
   getUserOpenAIApiKey,
   setUserOpenAIApiKey,
-  clearUserOpenAIApiKey,
-  hasValidOpenAIApiKey
+  clearUserOpenAIApiKey
 } from '../../api/apiKeyManager'
 
 interface Folder {
@@ -321,7 +320,10 @@ export function DocumentsTab(): React.JSX.Element {
             <div className="space-y-2 pt-3 flex flex-col gap-1">
               <h4 className="text-sm font-medium text-third mb-2">Available Documents:</h4>
               {selectedFiles.map((file) => (
-                <div key={file.id} className="flex items-center p-3 bg-gray rounded border border-gray-200 hover:bg-gray-100 transition-colors">
+                <div
+                  key={file.id}
+                  className="flex items-center p-3 bg-gray rounded border border-gray-200 hover:bg-gray-100 transition-colors"
+                >
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-700">{file.name}</p>
                     <p className="text-xs text-gray-500">

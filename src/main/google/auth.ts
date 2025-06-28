@@ -6,6 +6,8 @@ import path from 'path'
 import crypto from 'node:crypto'
 import { app, shell } from 'electron'
 
+const isPackaged = app.isPackaged
+
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/gmail.send',
@@ -57,7 +59,10 @@ async function waitForCode(server: Server, appServer: express.Express): Promise<
 }
 
 export async function getGmailClient(scopes: string[] = SCOPES): Promise<gmail_v1.Gmail> {
-  const credsPath = path.join(app.getAppPath(), 'credentials.json')
+  const credsPath = isPackaged
+    ? path.join(process.resourcesPath, 'credentials.json')
+    : path.join(app.getAppPath(), 'credentials.json')
+
   const {
     installed: { client_id, client_secret }
   } = JSON.parse(await fs.readFile(credsPath, 'utf-8'))
@@ -100,7 +105,10 @@ export async function getGmailClient(scopes: string[] = SCOPES): Promise<gmail_v
 }
 
 export async function getDriveClient(scopes: string[] = SCOPES): Promise<drive_v3.Drive> {
-  const credsPath = path.join(app.getAppPath(), 'credentials.json')
+  const credsPath = isPackaged
+    ? path.join(process.resourcesPath, 'credentials.json')
+    : path.join(app.getAppPath(), 'credentials.json')
+
   const {
     installed: { client_id, client_secret }
   } = JSON.parse(await fs.readFile(credsPath, 'utf-8'))

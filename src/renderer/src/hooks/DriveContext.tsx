@@ -1,44 +1,13 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useState, useEffect, type ReactNode } from 'react'
 import type React from 'react'
-
-export interface DriveFile {
-  id: string
-  name: string
-  mimeType: string
-  webViewLink?: string
-  modifiedTime?: string
-  content?: string
-}
-
-export interface DriveFolder {
-  id: string
-  name: string
-  files: DriveFile[]
-}
-
-interface DriveContextValue {
-  knowledgeBaseFolder: DriveFolder | null
-  selectedFiles: DriveFile[]
-  loading: boolean
-  error: string | null
-  selectKnowledgeBaseFolder: (folderId?: string) => Promise<void>
-  clearKnowledgeBase: () => void
-  refreshFiles: () => Promise<void>
-}
+import type { DriveFile, DriveFolder, DriveContextValue } from './DriveTypes'
+import { KNOWLEDGE_BASE_STORAGE_KEY } from './DriveTypes'
 
 const DriveContext = createContext<DriveContextValue | null>(null)
 
-export const useDrive = (): DriveContextValue => {
-  const context = useContext(DriveContext)
-  if (!context) {
-    throw new Error('useDrive must be used within a DriveProvider')
-  }
-  return context
-}
+export { DriveContext }
 
 const { ipcRenderer } = window.electron
-
-const KNOWLEDGE_BASE_STORAGE_KEY = 'knowledgeBaseFolder'
 
 export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.Element => {
   const [knowledgeBaseFolder, setKnowledgeBaseFolder] = useState<DriveFolder | null>(null)
@@ -47,8 +16,8 @@ export const DriveProvider = ({ children }: { children: ReactNode }): React.JSX.
   const [error, setError] = useState<string | null>(null)
 
   // Load saved knowledge base folder on mount
-  useEffect(() => {
-    const loadSavedFolder = async () => {
+  useEffect((): void => {
+    const loadSavedFolder = async (): Promise<void> => {
       try {
         const saved = localStorage.getItem(KNOWLEDGE_BASE_STORAGE_KEY)
         if (saved) {

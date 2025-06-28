@@ -67,7 +67,6 @@ export function MainContent(): React.JSX.Element {
         <MailContainer
           selectedMail={selectedMail}
           setSelectedMail={setSelectedMail}
-          onUpdateResponseMail={updateResponseMail}
           onRegisterMailEditingState={handleRegisterMailEditingState}
         />
       </div>
@@ -82,7 +81,7 @@ export function MainContent(): React.JSX.Element {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          height: '100%',
+          height: '100%'
         }}
         className="active:bg-gray-400 transition-colors h-full"
         onMouseDown={() => {
@@ -98,7 +97,7 @@ export function MainContent(): React.JSX.Element {
             height: 48,
             borderRadius: 2,
             background: '#cbd5e1',
-            margin: 'auto',
+            margin: 'auto'
           }}
         />
       </div>
