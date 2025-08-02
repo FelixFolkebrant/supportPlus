@@ -1,12 +1,15 @@
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState, useCallback } from 'react'
 import type React from 'react'
-import { GmailContext, Mail, UserProfile } from './GmailContextValue'
+import { GmailContext, Mail, UserProfile, NavView } from './GmailContextValue'
 
 const { ipcRenderer } = window.electron // exposed via contextBridge
 
 export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.Element => {
   const [mails, setMails] = useState<Mail[]>([])
   const [unansweredMails, setUnansweredMails] = useState<Mail[]>([])
+  const [repliedMails, setRepliedMails] = useState<Mail[]>([])
+  const [archivedMails, setArchivedMails] = useState<Mail[]>([])
+  const [currentView, setCurrentView] = useState<NavView>('inbox')
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
@@ -18,12 +21,13 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
 
   const MAILS_PER_PAGE = 8
 
-  const fetchAll = (): void => {
+  const fetchAll = useCallback((): void => {
     setLoading(true)
     setNeedsLogin(false)
     setNextPageToken(undefined)
     setHasMore(true)
-    Promise.all([
+    
+    const promises = [
       ipcRenderer.invoke('gmail:getMails', { maxResults: 3, labelIds: ['INBOX'], query: '' }),
       ipcRenderer.invoke('gmail:getUnansweredMails', {
         maxResults: MAILS_PER_PAGE,
@@ -35,15 +39,45 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         labelIds: ['INBOX'],
         query: 'category:primary is:unread'
       })
-    ])
-      .then(([allData, unansweredData, profileData, countData]) => {
+    ]
+
+    // Add additional promises based on current view
+    if (currentView === 'replied') {
+      promises.push(
+        ipcRenderer.invoke('gmail:getRepliedMails', {
+          maxResults: MAILS_PER_PAGE,
+          labelIds: ['INBOX'],
+          query: 'category:primary'
+        })
+      )
+    } else if (currentView === 'archived') {
+      promises.push(
+        ipcRenderer.invoke('gmail:getArchivedMails', {
+          maxResults: MAILS_PER_PAGE,
+          query: 'category:primary'
+        })
+      )
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        const [allData, unansweredData, profileData, countData, additionalData] = results
         setMails(allData as Mail[])
-        const response = unansweredData as { mails: Mail[]; nextPageToken?: string }
-        setUnansweredMails(response.mails)
+        const unansweredResponse = unansweredData as { mails: Mail[]; nextPageToken?: string }
+        setUnansweredMails(unansweredResponse.mails)
         setUserProfile(profileData as UserProfile)
-        setNextPageToken(response.nextPageToken)
-        setHasMore(!!response.nextPageToken)
+        setNextPageToken(unansweredResponse.nextPageToken)
+        setHasMore(!!unansweredResponse.nextPageToken)
         setTotalCount(countData as number)
+
+        // Handle additional data based on view
+        if (currentView === 'replied' && additionalData) {
+          const repliedResponse = additionalData as { mails: Mail[]; nextPageToken?: string }
+          setRepliedMails(repliedResponse.mails)
+        } else if (currentView === 'archived' && additionalData) {
+          const archivedResponse = additionalData as { mails: Mail[]; nextPageToken?: string }
+          setArchivedMails(archivedResponse.mails)
+        }
       })
       .catch((err) => {
         if (err && err.message && err.message.includes('invalid_grant')) {
@@ -51,23 +85,61 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         }
       })
       .finally(() => setLoading(false))
-  }
+  }, [currentView])
 
   const loadMore = (): void => {
     if (loadingMore || !hasMore || !nextPageToken) return
 
     setLoadingMore(true)
 
-    ipcRenderer
-      .invoke('gmail:getUnansweredMails', {
-        maxResults: MAILS_PER_PAGE,
-        labelIds: ['INBOX'],
-        query: 'category:primary is:unread',
-        pageToken: nextPageToken
-      })
+    let apiCall: Promise<{ mails: Mail[]; nextPageToken?: string }>
+    const baseParams = {
+      maxResults: MAILS_PER_PAGE,
+      pageToken: nextPageToken
+    }
+
+    switch (currentView) {
+      case 'inbox':
+        apiCall = ipcRenderer.invoke('gmail:getUnansweredMails', {
+          ...baseParams,
+          labelIds: ['INBOX'],
+          query: 'category:primary is:unread'
+        })
+        break
+      case 'replied':
+        apiCall = ipcRenderer.invoke('gmail:getRepliedMails', {
+          ...baseParams,
+          labelIds: ['INBOX'],
+          query: 'category:primary'
+        })
+        break
+      case 'archived':
+        apiCall = ipcRenderer.invoke('gmail:getArchivedMails', {
+          ...baseParams,
+          query: 'category:primary'
+        })
+        break
+      default:
+        setLoadingMore(false)
+        return
+    }
+
+    apiCall
       .then((data) => {
         const response = data as { mails: Mail[]; nextPageToken?: string }
-        setUnansweredMails((prev) => [...prev, ...response.mails])
+        
+        switch (currentView) {
+          case 'inbox':
+            setUnansweredMails((prev) => [...prev, ...response.mails])
+            break
+          case 'replied':
+            setRepliedMails((prev) => [...prev, ...response.mails])
+            break
+          case 'archived':
+            setArchivedMails((prev) => [...prev, ...response.mails])
+            break
+        }
+        
         setNextPageToken(response.nextPageToken)
         setHasMore(!!response.nextPageToken)
       })
@@ -75,6 +147,68 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         console.error('Error loading more mails:', err)
       })
       .finally(() => setLoadingMore(false))
+  }
+
+  const getCurrentMails = (): Mail[] => {
+    switch (currentView) {
+      case 'inbox':
+        return unansweredMails
+      case 'replied':
+        return repliedMails
+      case 'archived':
+        return archivedMails
+      case 'settings':
+        return []
+      default:
+        return unansweredMails
+    }
+  }
+
+  const handleSetCurrentView = (view: NavView): void => {
+    if (view === currentView) return
+    
+    setCurrentView(view)
+    setNextPageToken(undefined)
+    setHasMore(true)
+    setLoadingMore(false)
+    
+    // Load data for the new view if not already loaded
+    if (view === 'replied' && repliedMails.length === 0) {
+      setLoading(true)
+      ipcRenderer
+        .invoke('gmail:getRepliedMails', {
+          maxResults: MAILS_PER_PAGE,
+          labelIds: ['INBOX'],
+          query: 'category:primary'
+        })
+        .then((data) => {
+          const response = data as { mails: Mail[]; nextPageToken?: string }
+          setRepliedMails(response.mails)
+          setNextPageToken(response.nextPageToken)
+          setHasMore(!!response.nextPageToken)
+        })
+        .catch((err) => {
+          console.error('Error loading replied mails:', err)
+        })
+        .finally(() => setLoading(false))
+    } else if (view === 'archived' && archivedMails.length === 0) {
+      setLoading(true)
+      ipcRenderer
+        .invoke('gmail:getArchivedMails', {
+          maxResults: MAILS_PER_PAGE,
+          query: 'category:primary'
+        })
+        .then((data) => {
+          const response = data as { mails: Mail[]; nextPageToken?: string }
+          setArchivedMails(response.mails)
+          setNextPageToken(response.nextPageToken)
+          setHasMore(!!response.nextPageToken)
+        })
+        .catch((err) => {
+          console.error('Error loading archived mails:', err)
+        })
+        .finally(() => setLoading(false))
+    }
   }
 
   const login = (): void => {
@@ -97,11 +231,14 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
       setNeedsLogin(true)
       setMails([])
       setUnansweredMails([])
+      setRepliedMails([])
+      setArchivedMails([])
       setUserProfile(null)
       setNextPageToken(undefined)
       setHasMore(true)
       setLoadingMore(false)
       setTotalCount(0)
+      setCurrentView('inbox')
     })
   }
 
@@ -117,13 +254,16 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         setNeedsLogin(true)
       }
     })
-  }, [])
+  }, [fetchAll])
 
   return (
     <GmailContext.Provider
       value={{
         mails,
         unansweredMails,
+        repliedMails,
+        archivedMails,
+        currentView,
         userProfile,
         loading,
         loadingMore,
@@ -135,7 +275,9 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         loadMore,
         login,
         logout,
-        removeUnansweredMail
+        removeUnansweredMail,
+        setCurrentView: handleSetCurrentView,
+        getCurrentMails
       }}
     >
       {children}

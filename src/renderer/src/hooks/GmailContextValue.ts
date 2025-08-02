@@ -17,9 +17,14 @@ export interface UserProfile {
   picture: string
 }
 
+export type NavView = 'inbox' | 'replied' | 'archived' | 'settings'
+
 export interface GmailContextType {
   mails: Mail[]
   unansweredMails: Mail[]
+  repliedMails: Mail[]
+  archivedMails: Mail[]
+  currentView: NavView
   userProfile: UserProfile | null
   loading: boolean
   loadingMore: boolean
@@ -32,6 +37,8 @@ export interface GmailContextType {
   login: () => void
   logout: () => void
   removeUnansweredMail: (mailId: string) => void
+  setCurrentView: (view: NavView) => void
+  getCurrentMails: () => Mail[]
 }
 
 export const GmailContext = createContext<GmailContextType | undefined>(undefined)

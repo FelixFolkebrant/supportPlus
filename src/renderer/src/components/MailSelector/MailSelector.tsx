@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useCallback } from 'react'
 import MailPreview from './MailPreview'
 import { useGmail } from '../../hooks/useGmail'
 import { Mail } from '../../hooks/GmailContextValue'
+import IconReload from '../ui/icons/IconReload'
 
 interface MailSelectorProps {
   selectedMail: Mail | null
@@ -12,9 +13,26 @@ export function MailSelector({
   selectedMail,
   setSelectedMail
 }: MailSelectorProps): React.ReactElement {
-  const { unansweredMails, loading, loadingMore, hasMore, totalCount, refresh, loadMore } =
+  const { getCurrentMails, currentView, loading, loadingMore, hasMore, refresh, loadMore } =
     useGmail()
+  const currentMails = getCurrentMails()
   const listRef = useRef<HTMLUListElement>(null)
+
+  // Get title based on current view
+  const getViewTitle = (): string => {
+    switch (currentView) {
+      case 'inbox':
+        return 'Inbox'
+      case 'replied':
+        return 'Replied'
+      case 'archived':
+        return 'Archived'
+      case 'settings':
+        return 'Settings'
+      default:
+        return 'Inbox'
+    }
+  }
 
   // Infinite scroll handler
   const handleScroll = useCallback(() => {
@@ -38,15 +56,26 @@ export function MailSelector({
   }, [handleScroll])
 
   return (
-    <div className="w-full max-w-xl h-full flex flex-col bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+    <div className="w-full max-w-xl h-full flex flex-col bg-white shadow-xl border overflow-hidden">
       {/* Mail List */}
-      <ul
-        ref={listRef}
-        className="flex flex-col flex-1 overflow-y-auto scrollbar-hide px-2 py-3 bg-white"
-      >
-        {Array.isArray(unansweredMails) && unansweredMails.length > 0 ? (
+      <div className="flex-col items-center px-8 py-8 border-b border-third/20">
+        <div className="w-full pb-4 flex justify-between pt-6">
+          <div className="flex items-end gap-4">
+            <h2 className="text-2xl text-black">{getViewTitle()}</h2>
+            <h3 className="text-sm text-third pb-0.5">{currentMails.length} mails</h3>
+          </div>
+          <button onClick={refresh} className="text-sm cursor-pointer text-third hover:text-prim">
+            <IconReload />
+          </button>
+        </div>
+        <div className="w-full h-12 bg-bg items-center rounded-20 flex px-6">
+          <p className="text-third">Search</p>
+        </div>
+      </div>
+      <ul ref={listRef} className="flex flex-col flex-1 overflow-y-auto scrollbar-hide bg-white">
+        {Array.isArray(currentMails) && currentMails.length > 0 ? (
           <>
-            {unansweredMails.map((m) => (
+            {currentMails.map((m) => (
               <li
                 key={m.id}
                 className={`rounded-lg transition-all opacity-60 hover:opacity-100 ${selectedMail?.id === m.id ? 'opacity-100' : ''}`}
@@ -76,7 +105,7 @@ export function MailSelector({
                 </div>
               </li>
             )}
-            {!hasMore && unansweredMails.length > 0 && (
+            {!hasMore && currentMails.length > 0 && (
               <li className="flex justify-center py-4 text-gray-400 text-sm">
                 <span className="bg-gray-100 px-3 py-1 rounded-full">No more mails to load</span>
               </li>

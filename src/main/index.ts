@@ -6,6 +6,8 @@ import icon from '../../resources/icon.png?asset'
 import './google/auth'
 import { getEmails } from './google/getEmails'
 import { getUnansweredEmails, getUnansweredEmailsCount } from './google/getUnansweredEmails'
+import { getRepliedEmails, getRepliedEmailsCount } from './google/getRepliedEmails'
+import { getArchivedEmails, getArchivedEmailsCount } from './google/getArchivedEmails'
 import { getGmailClient, hasValidToken, logout as gmailLogout, sendReply } from './google/auth'
 import { getUserProfile } from './google/getUserProfile'
 import { setupDriveHandlers } from './google/drive'
@@ -92,6 +94,22 @@ ipcMain.handle('gmail:getUnansweredMails', async (_event, args) => {
 
 ipcMain.handle('gmail:getUnansweredMailsCount', async (_event, args) => {
   return await getUnansweredEmailsCount(args)
+})
+
+ipcMain.handle('gmail:getRepliedMails', async (_event, args) => {
+  return await getRepliedEmails(args)
+})
+
+ipcMain.handle('gmail:getRepliedMailsCount', async (_event, args) => {
+  return await getRepliedEmailsCount(args)
+})
+
+ipcMain.handle('gmail:getArchivedMails', async (_event, args) => {
+  return await getArchivedEmails(args)
+})
+
+ipcMain.handle('gmail:getArchivedMailsCount', async (_event, args) => {
+  return await getArchivedEmailsCount(args)
 })
 
 ipcMain.handle('gmail:login', async () => {

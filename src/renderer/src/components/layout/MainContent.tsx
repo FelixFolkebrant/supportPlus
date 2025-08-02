@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Chat } from '../ChatPanel/Chat'
 import { MailView } from '../MailView'
 import { MailSelector } from '../MailSelector'
+import { SettingsSelector, SettingsView } from '../Settings'
 import { useMailSelection } from '../../hooks/useMailSelection'
 import { useGmail } from '../../hooks/useGmail'
 import Navbar from '../Navbar/Navbar'
@@ -13,10 +14,16 @@ declare global {
   }
 }
 
-export function MainContent(): React.JSX.Element {
-  const { unansweredMails } = useGmail()
-  const { selectedMail, setSelectedMail } = useMailSelection(unansweredMails)
+interface MainContentProps {
+  onLogout?: () => void
+}
+
+export function MainContent({ onLogout }: MainContentProps): React.JSX.Element {
+  const { getCurrentMails, currentView } = useGmail()
+  const currentMails = getCurrentMails()
+  const { selectedMail, setSelectedMail } = useMailSelection(currentMails)
   const [mailEditingState, setMailEditingState] = useState<(isEditing: boolean) => void>()
+  const [selectedSettingId, setSelectedSettingId] = useState<string | null>('chat') // Default to chat settings
 
   // Function to update response mail content (called by AI chat)
   const updateResponseMail = (mailId: string, content: string): void => {
@@ -32,29 +39,49 @@ export function MainContent(): React.JSX.Element {
 
   return (
     <div className="flex flex-1 h-full w-full overflow-hidden">
-      <Navbar />
-      {/* Mail Selector - Left Panel */}
-      <div className="flex-none w-[500px] h-full min-w-0">
-        <MailSelector selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
-      </div>
+      <Navbar onLogout={onLogout} />
+      
+      {currentView === 'settings' ? (
+        <>
+          {/* Settings Selector - Left Panel */}
+          <div className="flex-none w-[500px] h-full min-w-0">
+            <SettingsSelector 
+              selectedSettingId={selectedSettingId} 
+              setSelectedSettingId={setSelectedSettingId} 
+            />
+          </div>
 
-      {/* Mail View - Center Panel */}
-      <div className="flex-1 h-full min-w-0">
-        <MailView
-          selectedMail={selectedMail}
-          setSelectedMail={setSelectedMail}
-          onRegisterMailEditingState={handleRegisterMailEditingState}
-        />
-      </div>
+          {/* Settings View - Right Panel */}
+          <div className="flex-1 h-full min-w-0">
+            <SettingsView selectedSettingId={selectedSettingId} />
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Mail Selector - Left Panel */}
+          <div className="flex-none w-[500px] h-full min-w-0">
+            <MailSelector selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
+          </div>
 
-      {/* Chat Panel - Right Panel */}
-      <div className="flex-none w-[500px] h-full min-w-0">
-        <Chat
-          selectedMail={selectedMail}
-          updateResponseMail={updateResponseMail}
-          setMailEditingState={mailEditingState}
-        />
-      </div>
+          {/* Mail View - Center Panel */}
+          <div className="flex-1 h-full min-w-0">
+            <MailView
+              selectedMail={selectedMail}
+              setSelectedMail={setSelectedMail}
+              onRegisterMailEditingState={handleRegisterMailEditingState}
+            />
+          </div>
+
+          {/* Chat Panel - Right Panel */}
+          <div className="flex-none w-[500px] h-full min-w-0">
+            <Chat
+              selectedMail={selectedMail}
+              updateResponseMail={updateResponseMail}
+              setMailEditingState={mailEditingState}
+            />
+          </div>
+        </>
+      )}
     </div>
   )
 }

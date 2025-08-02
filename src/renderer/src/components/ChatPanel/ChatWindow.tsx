@@ -6,14 +6,9 @@ import React from 'react'
 type ChatWindowProps = {
   messages: ChatMessage[]
   loading: boolean
-  onShowSettingsTab?: () => void
 }
 
-export function ChatWindow({
-  messages,
-  loading,
-  onShowSettingsTab
-}: ChatWindowProps): React.JSX.Element {
+export function ChatWindow({ messages, loading }: ChatWindowProps): React.JSX.Element {
   const showInstruction = messages.length === 0 && !loading
 
   return (
@@ -22,15 +17,9 @@ export function ChatWindow({
         <div className="flex flex-1 items-center justify-center w-full h-full">
           <div className="text-center text-gray-400 p-4 select-none w-full max-w-xl mx-auto">
             This is your <b>Mail Assistant</b>. It can help you create and edit emails based on your
-            documents in your{' '}
-            <button
-              className="underline text-blue-400 hover:text-blue-600 focus:outline-none bg-transparent border-none cursor-pointer p-0 m-0"
-              style={{ background: 'none' }}
-              onClick={onShowSettingsTab}
-            >
-              Google Drive Folder
-            </button>
-            . Add documents (FAQ, instructions, policies) to the folder to improve its answers!
+            documents in your Google Drive folder. Add documents (FAQ, instructions, policies) to
+            the folder to improve its answers! You can configure your Google Drive connection in the
+            Settings tab.
           </div>
         </div>
       ) : (
