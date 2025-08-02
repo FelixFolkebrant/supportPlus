@@ -1,5 +1,0 @@
-export { default as EmailBodyRenderer } from './EmailBodyRenderer'
-export { default as FullMail } from './FullMail'
-export { MailContainer } from './MailContainer'
-export { default as MailSelectWindow } from './MailSelectWindow'
-export { default as SvgMailShape } from './SvgMailShape'

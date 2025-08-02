@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { ZoomControls } from '../ui/ZoomControls'
 
 interface AppHeaderProps {
   onLogout: () => void
@@ -121,6 +122,10 @@ export function AppHeader({
             </div>
           )}
         </div>
+
+        {/* Zoom controls */}
+        <ZoomControls className="mr-2" showPercentage={true} />
+
         {/* Window control buttons */}
         <button
           aria-label="Minimize"

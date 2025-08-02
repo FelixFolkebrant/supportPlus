@@ -29,7 +29,38 @@ export async function getHorrorStory(prompt: string): Promise<string> {
       }
     )
     return response.data.choices[0].message.content
-  } catch {
+  } catch (error: unknown) {
+    console.error('OpenAI API error:', error)
+
+    // Handle quota-specific errors
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as {
+        response?: {
+          data?: {
+            error?: {
+              code?: string
+              type?: string
+              message?: string
+            }
+          }
+        }
+      }
+      const apiError = axiosError.response?.data?.error
+      if (apiError) {
+        if (
+          apiError.code === 'insufficient_quota' ||
+          apiError.type === 'insufficient_quota' ||
+          apiError.message?.toLowerCase().includes('quota') ||
+          apiError.message?.toLowerCase().includes('billing')
+        ) {
+          throw new Error(
+            `OpenAI API Quota Error: ${apiError.message}\n\nPlease check your OpenAI dashboard at https://platform.openai.com/usage`
+          )
+        }
+        throw new Error(`OpenAI API Error: ${apiError.message}`)
+      }
+    }
+
     return 'Error fetching story.'
   }
 }
@@ -157,8 +188,38 @@ Generate a complete, professional response that addresses their concerns in the 
     )
 
     return response.data.choices[0].message.content
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error generating auto-draft:', error)
+
+    // Handle quota-specific errors for auto-draft
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as {
+        response?: {
+          data?: {
+            error?: {
+              code?: string
+              type?: string
+              message?: string
+            }
+          }
+        }
+      }
+      const apiError = axiosError.response?.data?.error
+      if (apiError) {
+        if (
+          apiError.code === 'insufficient_quota' ||
+          apiError.type === 'insufficient_quota' ||
+          apiError.message?.toLowerCase().includes('quota') ||
+          apiError.message?.toLowerCase().includes('billing')
+        ) {
+          throw new Error(
+            `OpenAI API Quota Error: ${apiError.message}\n\nPlease check your OpenAI dashboard at https://platform.openai.com/usage`
+          )
+        }
+        throw new Error(`OpenAI API Error: ${apiError.message}`)
+      }
+    }
+
     throw new Error('Failed to generate auto-draft. Please try again.')
   }
 }

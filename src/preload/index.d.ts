@@ -7,6 +7,13 @@ declare global {
       minimize: () => void
       maximize: () => void
       close: () => void
+      zoom: {
+        get: () => Promise<number>
+        set: (factor: number) => Promise<number>
+        reset: () => Promise<number>
+        in: () => Promise<number>
+        out: () => Promise<number>
+      }
     }
   }
 }

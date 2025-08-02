@@ -99,7 +99,35 @@ export async function chatWithOpenAI(
   if (!response.ok) {
     const errorText = await response.text()
     console.error('OpenAI API error:', response.status, response.statusText, errorText)
-    throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`)
+
+    // Parse error details for better user feedback
+    let errorMessage = `OpenAI API error: ${response.status} ${response.statusText}`
+    try {
+      const errorData = JSON.parse(errorText)
+      if (errorData.error) {
+        errorMessage = errorData.error.message || errorMessage
+
+        // Handle specific quota errors
+        if (
+          errorData.error.code === 'insufficient_quota' ||
+          errorData.error.type === 'insufficient_quota' ||
+          errorMessage.toLowerCase().includes('quota') ||
+          errorMessage.toLowerCase().includes('billing')
+        ) {
+          errorMessage = `OpenAI API Quota Error: ${errorData.error.message}\n\nThis could be due to:\n• Rate limits (too many requests)\n• Monthly usage limits\n• Billing issues\n• API key restrictions\n\nPlease check your OpenAI dashboard at https://platform.openai.com/usage`
+        }
+      }
+    } catch {
+      // If we can't parse the error, use the raw text
+      if (
+        errorText.toLowerCase().includes('quota') ||
+        errorText.toLowerCase().includes('billing')
+      ) {
+        errorMessage = `OpenAI API Quota Error: ${errorText}\n\nPlease check your OpenAI dashboard at https://platform.openai.com/usage`
+      }
+    }
+
+    throw new Error(errorMessage)
   }
 
   if (!response.body) throw new Error('No response body')

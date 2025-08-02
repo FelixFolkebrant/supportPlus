@@ -1,0 +1,6 @@
+export { ChatWindow } from './ChatWindow'
+export { ChatInput } from './ChatInput'
+export { DocumentsTab } from './DocumentsTab'
+export { ChatMessageBubble } from './ChatMessageBubble'
+export { FolderPicker } from './FolderPicker'
+export { KnowledgeBaseModal } from './KnowledgeBaseModal'

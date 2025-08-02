@@ -1,5 +1,6 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog, screen } from 'electron'
 import { join } from 'path'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import './google/auth'
@@ -26,6 +27,61 @@ interface LoggerWithTransports {
 
 // Check for updates only when app is packaged
 
+// Store for zoom level
+let currentZoomFactor = 1.0
+let mainWindow: BrowserWindow | null = null
+
+// Load saved zoom level from storage
+function loadSavedZoomFactor(): number {
+  try {
+    const userDataPath = app.getPath('userData')
+    const settingsPath = join(userDataPath, 'settings.json')
+
+    if (existsSync(settingsPath)) {
+      const settings = JSON.parse(readFileSync(settingsPath, 'utf-8')) as { zoomFactor?: number }
+      return settings.zoomFactor || calculateOptimalZoom()
+    }
+  } catch (error) {
+    console.error('Failed to load zoom factor:', error)
+  }
+
+  return calculateOptimalZoom()
+}
+
+// Save zoom level to storage
+function saveZoomFactor(factor: number): void {
+  try {
+    const userDataPath = app.getPath('userData')
+    const settingsPath = join(userDataPath, 'settings.json')
+
+    let settings: { zoomFactor?: number } = {}
+    if (existsSync(settingsPath)) {
+      settings = JSON.parse(readFileSync(settingsPath, 'utf-8')) as { zoomFactor?: number }
+    }
+
+    settings.zoomFactor = factor
+    writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
+  } catch (error) {
+    console.error('Failed to save zoom factor:', error)
+  }
+}
+
+// Calculate optimal zoom factor based on display
+function calculateOptimalZoom(): number {
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { scaleFactor, workAreaSize } = primaryDisplay
+
+  // For high-DPI displays (2.4K+), we want to increase zoom
+  if (workAreaSize.width >= 2560) {
+    return Math.max(1.0, scaleFactor * 0.8) // Slightly less than full scale factor
+  } else if (workAreaSize.width >= 1920) {
+    return Math.max(1.0, scaleFactor * 0.9)
+  }
+
+  return scaleFactor
+}
+
+// Gmail and other existing IPC handlers
 ipcMain.handle('gmail:getMails', async (_event, args) => {
   return await getEmails(args)
 })
@@ -77,9 +133,53 @@ ipcMain.on('window:close', (event) => {
   window?.close()
 })
 
+// Add zoom-related IPC handlers
+ipcMain.handle('zoom:get', () => {
+  return currentZoomFactor
+})
+
+ipcMain.handle('zoom:set', (_, factor: number) => {
+  currentZoomFactor = Math.max(0.5, Math.min(3.0, factor)) // Clamp between 0.5x and 3.0x
+  if (mainWindow) {
+    mainWindow.webContents.setZoomFactor(currentZoomFactor)
+  }
+  saveZoomFactor(currentZoomFactor)
+  return currentZoomFactor
+})
+
+ipcMain.handle('zoom:reset', () => {
+  currentZoomFactor = calculateOptimalZoom()
+  if (mainWindow) {
+    mainWindow.webContents.setZoomFactor(currentZoomFactor)
+  }
+  saveZoomFactor(currentZoomFactor)
+  return currentZoomFactor
+})
+
+ipcMain.handle('zoom:in', () => {
+  currentZoomFactor = Math.min(3.0, currentZoomFactor + 0.1)
+  if (mainWindow) {
+    mainWindow.webContents.setZoomFactor(currentZoomFactor)
+  }
+  saveZoomFactor(currentZoomFactor)
+  return currentZoomFactor
+})
+
+ipcMain.handle('zoom:out', () => {
+  currentZoomFactor = Math.max(0.5, currentZoomFactor - 0.1)
+  if (mainWindow) {
+    mainWindow.webContents.setZoomFactor(currentZoomFactor)
+  }
+  saveZoomFactor(currentZoomFactor)
+  return currentZoomFactor
+})
+
 function createWindow(): void {
+  // Calculate optimal zoom for the current display or load saved value
+  currentZoomFactor = loadSavedZoomFactor()
+
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     show: false,
     autoHideMenuBar: true,
     resizable: true, // Allow window to be resizable
@@ -97,8 +197,13 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.maximize() // Maximize to fill the screen but keep window frame
-    mainWindow.show()
+    mainWindow?.maximize() // Maximize to fill the screen but keep window frame
+    mainWindow?.show()
+
+    // Apply initial zoom factor
+    if (mainWindow) {
+      mainWindow.webContents.setZoomFactor(currentZoomFactor)
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

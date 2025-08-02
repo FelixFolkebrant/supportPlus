@@ -4,9 +4,13 @@ import { DriveProvider } from './hooks/DriveContext'
 import { AppLayout } from './components/layout'
 import WelcomeScreen from './components/ui/WelcomeScreen'
 import { useGmail } from './hooks/useGmail'
+import { useZoomKeyboardShortcuts } from './hooks/useZoomKeyboardShortcuts'
 
 function MailAppContent(): React.JSX.Element {
   const { needsLogin, login, loginInProgress, logout } = useGmail()
+
+  // Enable zoom keyboard shortcuts
+  useZoomKeyboardShortcuts()
 
   if (needsLogin) return <WelcomeScreen onLogin={login} loginInProgress={loginInProgress} />
 

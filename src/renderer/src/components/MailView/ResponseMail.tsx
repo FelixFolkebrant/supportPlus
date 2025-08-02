@@ -7,7 +7,7 @@ import React, {
   useCallback
 } from 'react'
 import type { Mail } from '../../hooks/GmailContextValue'
-import { SendButton } from '../SendButton'
+import { SendButton } from './SendButton'
 import { useEmail } from '../../hooks/useEmail'
 import { generateAutoDraft } from '../../api/openai'
 

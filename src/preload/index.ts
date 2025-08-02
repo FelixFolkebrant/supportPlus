@@ -5,7 +5,15 @@ import { electronAPI } from '@electron-toolkit/preload'
 const api = {
   minimize: () => ipcRenderer.send('window:minimize'),
   maximize: () => ipcRenderer.send('window:maximize'),
-  close: () => ipcRenderer.send('window:close')
+  close: () => ipcRenderer.send('window:close'),
+  // Zoom controls
+  zoom: {
+    get: () => ipcRenderer.invoke('zoom:get'),
+    set: (factor: number) => ipcRenderer.invoke('zoom:set', factor),
+    reset: () => ipcRenderer.invoke('zoom:reset'),
+    in: () => ipcRenderer.invoke('zoom:in'),
+    out: () => ipcRenderer.invoke('zoom:out')
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

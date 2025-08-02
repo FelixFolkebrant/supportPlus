@@ -1,6 +1,6 @@
-import { ChatMessage } from '../../api/chat'
+import type { ChatMessage } from '../../api/chat'
 import { ChatMessageBubble } from './ChatMessageBubble'
-import { AnimatePresence, motion } from '../mail/framerMotion'
+import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 
 type ChatWindowProps = {

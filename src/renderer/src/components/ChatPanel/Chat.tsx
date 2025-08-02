@@ -1,14 +1,14 @@
 import type React from 'react'
 import { useEffect, useState } from 'react'
-import { ChatWindow } from '../chat/ChatWindow'
-import { ChatInput } from '../chat/ChatInput'
-import { DocumentsTab } from '../chat/DocumentsTab'
+import { ChatWindow } from './ChatWindow'
+import { ChatInput } from './ChatInput'
+import { DocumentsTab } from './DocumentsTab'
 import { useChat } from '../../hooks/useChat'
 import { useDrive } from '../../hooks/useDrive'
 import type { Mail } from '../../hooks/GmailContextValue'
 import { hasValidOpenAIApiKey } from '../../api/apiKeyManager'
 
-interface ChatContainerProps {
+interface ChatProps {
   selectedMail: Mail | null
   updateResponseMail?: (mailId: string, content: string) => void
   setMailEditingState?: (isEditing: boolean) => void
@@ -16,11 +16,11 @@ interface ChatContainerProps {
 
 type TabType = 'chat' | 'settings'
 
-export function ChatContainer({
+export function Chat({
   selectedMail,
   updateResponseMail,
   setMailEditingState
-}: ChatContainerProps): React.JSX.Element {
+}: ChatProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<TabType>('chat')
 
   const {
