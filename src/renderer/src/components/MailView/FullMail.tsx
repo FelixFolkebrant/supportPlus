@@ -8,16 +8,9 @@ interface FullMailProps {
   isHtml?: boolean
 }
 
-const getNameOnly = (from?: string): string => {
-  if (!from) return ''
-  return from.replace(/\s*<[^>]+>/, '').trim()
-}
-
-const FullMail: React.FC<FullMailProps> = ({ subject, from, body, isHtml = false }) => (
-  <div className="p-5 pt-12 rounded select-text w-full">
-    <h2 className="font-bold text-secondary text-3xl mb-1.5 select-text">{subject}</h2>
-    <div className="text-lg text-third mb-3">{getNameOnly(from)}</div>
-    <EmailBodyRenderer body={body} isHtml={isHtml} className="text-base pt-4 text-gray-800" />
+const FullMail: React.FC<FullMailProps> = ({ body, isHtml = false }) => (
+  <div className="pt-4 rounded select-text w-full">
+    <EmailBodyRenderer body={body} isHtml={isHtml} className="text-base text-gray-800" />
   </div>
 )
 

@@ -26,7 +26,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
     setNeedsLogin(false)
     setNextPageToken(undefined)
     setHasMore(true)
-    
+
     const promises = [
       ipcRenderer.invoke('gmail:getMails', { maxResults: 3, labelIds: ['INBOX'], query: '' }),
       ipcRenderer.invoke('gmail:getUnansweredMails', {
@@ -127,7 +127,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
     apiCall
       .then((data) => {
         const response = data as { mails: Mail[]; nextPageToken?: string }
-        
+
         switch (currentView) {
           case 'inbox':
             setUnansweredMails((prev) => [...prev, ...response.mails])
@@ -139,7 +139,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
             setArchivedMails((prev) => [...prev, ...response.mails])
             break
         }
-        
+
         setNextPageToken(response.nextPageToken)
         setHasMore(!!response.nextPageToken)
       })
@@ -166,12 +166,12 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
 
   const handleSetCurrentView = (view: NavView): void => {
     if (view === currentView) return
-    
+
     setCurrentView(view)
     setNextPageToken(undefined)
     setHasMore(true)
     setLoadingMore(false)
-    
+
     // Load data for the new view if not already loaded
     if (view === 'replied' && repliedMails.length === 0) {
       setLoading(true)

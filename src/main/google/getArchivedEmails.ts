@@ -71,7 +71,7 @@ export async function getArchivedEmails({
   nextPageToken?: string
 }> {
   const gmail = await getGmailClient()
-  
+
   // Use the archived label filter
   const { data } = await gmail.users.messages.list({
     userId: 'me',
@@ -80,7 +80,7 @@ export async function getArchivedEmails({
     q: `${query} label:archived`, // Filter for archived messages
     pageToken
   })
-  
+
   if (!data.messages) return { mails: [], nextPageToken: undefined }
 
   const details = await Promise.all(
@@ -92,7 +92,7 @@ export async function getArchivedEmails({
       })
     )
   )
-  
+
   const archived = details.map((d) => {
     const bodyData = getBody(d.data)
     return {

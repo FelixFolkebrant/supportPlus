@@ -173,7 +173,7 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
   }, [mail.id])
 
   return (
-    <div className="px-4">
+    <div className="pt-8">
       <div className="bg-gray-50 rounded-lg shadow-sm border border-gray-200 w-full">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100">

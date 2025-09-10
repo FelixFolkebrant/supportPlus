@@ -46,7 +46,7 @@ export function MailView({
   }
 
   return (
-    <div className="flex-1 px-12 pt-4 bg-white overflow-auto">
+    <div className="flex-1 h-full bg-white overflow-hidden flex flex-col">
       <AnimatePresence mode="wait">
         {selectedMail ? (
           <motion.div
@@ -54,15 +54,30 @@ export function MailView({
             initial={{ opacity: 0, x: -5 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 5 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            transition={{ duration: 0, ease: 'easeOut' }}
+            className="flex flex-col h-full"
           >
-            <FullMail {...selectedMail} />
-            <ResponseMail
-              mail={selectedMail}
-              onRegisterUpdate={handleRegisterUpdate}
-              onRegisterEditingState={handleRegisterEditingState}
-              onSent={handleMailSent}
-            />
+            {/* Sticky Header with Title and Sender */}
+            <div className="sticky top-0 bg-white z-10 px-12 pt-16 pb-4 border-b border-gray-100">
+              <h2 className="font-bold text-secondary text-3xl mb-1.5 select-text">
+                {selectedMail.subject}
+              </h2>
+              <div className="text-lg text-third mb-3">
+                {selectedMail.from?.replace(/\s*<[^>]+>/, '').trim()}
+              </div>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-12">
+              <FullMail {...selectedMail} />
+              <ResponseMail
+                mail={selectedMail}
+                onRegisterUpdate={handleRegisterUpdate}
+                onRegisterEditingState={handleRegisterEditingState}
+                onSent={handleMailSent}
+              />
+              <div className="pb-8" />
+            </div>
           </motion.div>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">

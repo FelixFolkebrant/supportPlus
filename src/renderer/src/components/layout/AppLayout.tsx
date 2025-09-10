@@ -8,7 +8,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ onLogout }: AppLayoutProps): React.JSX.Element {
   return (
-    <div className="h-screen w-screen">
+    <div className="h-screen w-screen flex flex-col overflow-hidden">
       <AppHeader />
       <MainContent onLogout={onLogout} />
     </div>

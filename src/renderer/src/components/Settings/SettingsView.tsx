@@ -64,7 +64,7 @@ export function SettingsView({ selectedSettingId }: SettingsViewProps): React.Re
           )}
         </div>
       )}
-      
+
       {renderSettingPanel()}
     </div>
   )

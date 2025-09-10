@@ -40,31 +40,31 @@ export function MainContent({ onLogout }: MainContentProps): React.JSX.Element {
   return (
     <div className="flex flex-1 h-full w-full overflow-hidden">
       <Navbar onLogout={onLogout} />
-      
+
       {currentView === 'settings' ? (
         <>
           {/* Settings Selector - Left Panel */}
-          <div className="flex-none w-[500px] h-full min-w-0">
-            <SettingsSelector 
-              selectedSettingId={selectedSettingId} 
-              setSelectedSettingId={setSelectedSettingId} 
+          <div className="flex-none w-[500px] h-full min-w-0 overflow-hidden">
+            <SettingsSelector
+              selectedSettingId={selectedSettingId}
+              setSelectedSettingId={setSelectedSettingId}
             />
           </div>
 
           {/* Settings View - Right Panel */}
-          <div className="flex-1 h-full min-w-0">
+          <div className="flex-1 h-full min-w-0 overflow-hidden">
             <SettingsView selectedSettingId={selectedSettingId} />
           </div>
         </>
       ) : (
         <>
           {/* Mail Selector - Left Panel */}
-          <div className="flex-none w-[500px] h-full min-w-0">
+          <div className="flex-none w-[500px] h-full min-w-0 overflow-hidden">
             <MailSelector selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
           </div>
 
           {/* Mail View - Center Panel */}
-          <div className="flex-1 h-full min-w-0">
+          <div className="flex-1 h-full min-w-0 overflow-hidden">
             <MailView
               selectedMail={selectedMail}
               setSelectedMail={setSelectedMail}
@@ -73,7 +73,7 @@ export function MainContent({ onLogout }: MainContentProps): React.JSX.Element {
           </div>
 
           {/* Chat Panel - Right Panel */}
-          <div className="flex-none w-[500px] h-full min-w-0">
+          <div className="flex-none w-[500px] h-full min-w-0 overflow-hidden">
             <Chat
               selectedMail={selectedMail}
               updateResponseMail={updateResponseMail}

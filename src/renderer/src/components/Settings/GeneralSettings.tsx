@@ -24,7 +24,7 @@ export function GeneralSettings(): React.ReactElement {
           </svg>
           Account Information
         </h3>
-        
+
         {userProfile ? (
           <div className="flex items-center space-x-4">
             <img
@@ -40,7 +40,7 @@ export function GeneralSettings(): React.ReactElement {
         ) : (
           <p className="text-sm text-gray-600">No user profile available</p>
         )}
-        
+
         <div className="mt-4">
           <button
             onClick={logout}
@@ -65,7 +65,7 @@ export function GeneralSettings(): React.ReactElement {
               className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <label className="text-sm font-medium text-gray-700">Show notifications</label>
@@ -120,7 +120,7 @@ export function GeneralSettings(): React.ReactElement {
             <strong>API Integration:</strong> Gmail API, Google Drive API, OpenAI API
           </p>
         </div>
-        
+
         <div className="mt-4 space-x-4">
           <a href="#" className="text-sm text-blue-600 hover:underline">
             Privacy Policy
