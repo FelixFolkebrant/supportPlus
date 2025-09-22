@@ -10,6 +10,7 @@ import { getRepliedEmails, getRepliedEmailsCount } from './google/getRepliedEmai
 import { getArchivedEmails, getArchivedEmailsCount } from './google/getArchivedEmails'
 import { getGmailClient, hasValidToken, logout as gmailLogout, sendReply } from './google/auth'
 import { getUserProfile } from './google/getUserProfile'
+import { archiveThread, unarchiveThread } from './google/archiveThread'
 import { setupDriveHandlers } from './google/drive'
 
 import { autoUpdater } from 'electron-updater'
@@ -108,8 +109,16 @@ ipcMain.handle('gmail:getArchivedMails', async (_event, args) => {
   return await getArchivedEmails(args)
 })
 
-ipcMain.handle('gmail:getArchivedMailsCount', async (_event, args) => {
-  return await getArchivedEmailsCount(args)
+ipcMain.handle('gmail:getArchivedMailsCount', async () => {
+  return await getArchivedEmailsCount()
+})
+
+ipcMain.handle('gmail:archiveThread', async (_event, threadId: string) => {
+  return await archiveThread(threadId)
+})
+
+ipcMain.handle('gmail:unarchiveThread', async (_event, threadId: string) => {
+  return await unarchiveThread(threadId)
 })
 
 ipcMain.handle('gmail:login', async () => {

@@ -246,6 +246,41 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
     setUnansweredMails((prev) => prev.filter((m) => m.id !== mailId))
   }
 
+  const archiveThread = async (threadId: string): Promise<void> => {
+    try {
+      await ipcRenderer.invoke('gmail:archiveThread', threadId)
+      
+      // Remove the thread from inbox and replied views
+      setUnansweredMails((prev) => prev.filter((m) => m.threadId !== threadId))
+      setRepliedMails((prev) => prev.filter((m) => m.threadId !== threadId))
+      
+      // Refresh archived mails to show the newly archived thread
+      const archivedData = await ipcRenderer.invoke('gmail:getArchivedMails', {
+        maxResults: MAILS_PER_PAGE
+      })
+      const archivedResponse = archivedData as { mails: Mail[]; nextPageToken?: string }
+      setArchivedMails(archivedResponse.mails)
+    } catch (error) {
+      console.error('Error archiving thread:', error)
+      throw error
+    }
+  }
+
+  const unarchiveThread = async (threadId: string): Promise<void> => {
+    try {
+      await ipcRenderer.invoke('gmail:unarchiveThread', threadId)
+      
+      // Remove the thread from archived view
+      setArchivedMails((prev) => prev.filter((m) => m.threadId !== threadId))
+      
+      // Refresh other views to potentially show the unarchived thread
+      fetchAll()
+    } catch (error) {
+      console.error('Error unarchiving thread:', error)
+      throw error
+    }
+  }
+
   useEffect(() => {
     ipcRenderer.invoke('gmail:hasValidToken').then((valid: boolean) => {
       if (valid) {
@@ -277,7 +312,9 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         logout,
         removeUnansweredMail,
         setCurrentView: handleSetCurrentView,
-        getCurrentMails
+        getCurrentMails,
+        archiveThread,
+        unarchiveThread
       }}
     >
       {children}

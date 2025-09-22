@@ -79,11 +79,28 @@ export async function getRepliedEmails({
 }> {
   const gmail = await getGmailClient()
   const myEmail = await getMyEmail(gmail)
+  
+  // Get the SupportPlus/Archived label ID to exclude it from results
+  let archivedLabelId: string | undefined
+  try {
+    const labelsResponse = await gmail.users.labels.list({ userId: 'me' })
+    const archivedLabel = labelsResponse.data.labels?.find((label) => label.name === 'SupportPlus/Archived')
+    archivedLabelId = archivedLabel?.id || undefined
+  } catch (error) {
+    console.warn('Could not fetch labels for filtering archived emails:', error)
+  }
+
+  // Add exclusion of SupportPlus/Archived label to query if it exists
+  let finalQuery = query
+  if (archivedLabelId) {
+    finalQuery = `${query} -label:${archivedLabelId}`
+  }
+
   const { data } = await gmail.users.messages.list({
     userId: 'me',
     maxResults: maxResults * 3, // fetch more to filter
     labelIds,
-    q: query,
+    q: finalQuery,
     pageToken
   })
   if (!data.messages) return { mails: [], nextPageToken: undefined }
@@ -166,11 +183,28 @@ export async function getRepliedEmailsCount({
   query?: string
 } = {}): Promise<number> {
   const gmail = await getGmailClient()
+  
+  // Get the SupportPlus/Archived label ID to exclude it from results
+  let archivedLabelId: string | undefined
+  try {
+    const labelsResponse = await gmail.users.labels.list({ userId: 'me' })
+    const archivedLabel = labelsResponse.data.labels?.find((label) => label.name === 'SupportPlus/Archived')
+    archivedLabelId = archivedLabel?.id || undefined
+  } catch (error) {
+    console.warn('Could not fetch labels for filtering archived emails:', error)
+  }
+
+  // Add exclusion of SupportPlus/Archived label to query if it exists
+  let finalQuery = query
+  if (archivedLabelId) {
+    finalQuery = `${query} -label:${archivedLabelId}`
+  }
+
   const { data } = await gmail.users.messages.list({
     userId: 'me',
     maxResults: 1, // We only need the count, not the actual messages
     labelIds,
-    q: query
+    q: finalQuery
   })
 
   return data.resultSizeEstimate || 0

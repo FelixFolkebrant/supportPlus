@@ -39,6 +39,8 @@ export interface GmailContextType {
   removeUnansweredMail: (mailId: string) => void
   setCurrentView: (view: NavView) => void
   getCurrentMails: () => Mail[]
+  archiveThread: (threadId: string) => Promise<void>
+  unarchiveThread: (threadId: string) => Promise<void>
 }
 
 export const GmailContext = createContext<GmailContextType | undefined>(undefined)

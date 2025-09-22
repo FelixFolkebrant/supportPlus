@@ -4,6 +4,7 @@ import { ResponseMail } from './ResponseMail'
 import type { Mail } from '../../hooks/GmailContextValue'
 import { useGmail } from '../../hooks/useGmail'
 import { AnimatePresence, motion } from 'framer-motion'
+import IconArchive from '../ui/icons/IconArchive'
 
 // Extend Window interface for our global function
 declare global {
@@ -23,7 +24,7 @@ export function MailView({
   setSelectedMail,
   onRegisterMailEditingState
 }: MailViewProps): React.JSX.Element {
-  const { removeUnansweredMail } = useGmail()
+  const { removeUnansweredMail, currentView, archiveThread, unarchiveThread } = useGmail()
 
   const handleRegisterUpdate = (updateFn: (mailId: string, content: string) => void): void => {
     // Store this update function globally so the chat can call it
@@ -45,6 +46,22 @@ export function MailView({
     }
   }
 
+  // Handle archiving/unarchiving a thread
+  const handleArchiveToggle = async (): Promise<void> => {
+    if (!selectedMail?.threadId) return
+
+    try {
+      if (currentView === 'archived') {
+        await unarchiveThread(selectedMail.threadId)
+      } else {
+        await archiveThread(selectedMail.threadId)
+      }
+      setSelectedMail(null)
+    } catch (error) {
+      console.error('Error toggling archive status:', error)
+    }
+  }
+
   return (
     <div className="flex-1 h-full bg-white overflow-hidden flex flex-col">
       <AnimatePresence mode="wait">
@@ -59,9 +76,28 @@ export function MailView({
           >
             {/* Sticky Header with Title and Sender */}
             <div className="sticky top-0 bg-white z-10 px-12 pt-16 pb-4 border-b border-gray-100">
-              <h2 className="font-bold text-secondary text-3xl mb-1.5 select-text">
-                {selectedMail.subject}
-              </h2>
+              <div className="flex justify-between items-start mb-1.5">
+                <h2 className="font-bold text-secondary text-3xl select-text">
+                  {selectedMail.subject}
+                </h2>
+                {currentView === 'archived' ? (
+                  <button
+                    onClick={handleArchiveToggle}
+                    className="ml-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+                    title="Unarchive thread"
+                  >
+                    Unarchive
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleArchiveToggle}
+                    className="ml-4 p-3 rounded-lg transition-colors hover:bg-gray-100 text-gray-600 hover:text-prim"
+                    title="Archive thread"
+                  >
+                    <IconArchive filled={false} size={24} />
+                  </button>
+                )}
+              </div>
               <div className="text-lg text-third mb-3">
                 {selectedMail.from?.replace(/\s*<[^>]+>/, '').trim()}
               </div>
