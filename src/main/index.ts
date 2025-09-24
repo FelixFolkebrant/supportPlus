@@ -143,6 +143,28 @@ ipcMain.handle('gmail:sendReply', async (_event, { messageId, body }) => {
   return await sendReply(messageId, body)
 })
 
+// Mark a message as read by removing the UNREAD label
+ipcMain.handle('gmail:markAsRead', async (_event, id: string) => {
+  const gmail = await getGmailClient()
+
+  // Try to resolve a threadId from a messageId; if that fails, assume id is a threadId
+  let threadId = id
+  try {
+    const msg = await gmail.users.messages.get({ userId: 'me', id })
+    if (msg.data.threadId) threadId = msg.data.threadId
+  } catch {
+    // id might already be a threadId; continue
+  }
+
+  // Mark the entire thread as read (remove UNREAD from all messages in the thread)
+  await gmail.users.threads.modify({
+    userId: 'me',
+    id: threadId,
+    requestBody: { removeLabelIds: ['UNREAD'] }
+  })
+  return true
+})
+
 ipcMain.on('window:minimize', (event) => {
   const window = BrowserWindow.fromWebContents(event.sender)
   window?.minimize()

@@ -1,5 +1,5 @@
 import React from 'react'
-import SvgMailShape from './SvgMailShape'
+// import SvgMailShape from './SvgMailShape'
 
 interface MailPreviewProps {
   subject?: string
@@ -7,6 +7,7 @@ interface MailPreviewProps {
   snippet?: string
   active?: boolean
   date?: string
+  isUnread?: boolean
 }
 
 const getNameOnly = (from?: string): string => {
@@ -34,7 +35,14 @@ const formatTime = (date?: string): string => {
   }
 }
 
-const MailPreview: React.FC<MailPreviewProps> = ({ subject, from, active, date, snippet }) => (
+const MailPreview: React.FC<MailPreviewProps> = ({
+  subject,
+  from,
+  active,
+  date,
+  snippet,
+  isUnread
+}) => (
   <li
     className={`${active ? 'bg-prim/10' : ''} border-b border-third/20 relative flex items-start w-full h-[160px]`}
   >
@@ -42,10 +50,17 @@ const MailPreview: React.FC<MailPreviewProps> = ({ subject, from, active, date, 
     <div className={`h-full w-1.5 ${active ? 'bg-prim' : 'bg-transparent'} rounded-r-[20px]`}></div>
     <div>
       <div className="relative z-10 w-full p-4 flex flex-col h-full">
-        <div className="flex flex-row items-center justify-between w-full">
+        <div className="flex flex-row items-center justify-between w-full relative">
+          {/* Unread blue dot positioned relative to the title line */}
+          {typeof isUnread !== 'undefined' && isUnread && (
+            <span
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-500"
+              style={{ opacity: 1 }}
+            />
+          )}
           <div
-            className={`font-medium pt-1 leading-6 text-xl max-w-5/6 ${
-              active ? 'text-black' : 'text-third'
+            className={`font-medium pt-1 leading-6 text-xl max-w-5/6 pl-4 ${
+              active || isUnread ? 'text-black' : 'text-third'
             }`}
           >
             {subject}

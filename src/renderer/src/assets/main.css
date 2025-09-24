@@ -1,6 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 @import './base.css';
 @import './scrollbar-hide.css';
 @import 'tailwindcss';
+
+/* Fade-out animation for archiving */
+@keyframes fadeOutSlide {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.animate-fade-out {
+  animation: fadeOutSlide 220ms ease-out forwards;
+}
+
 @theme {
   --color-primary: #6470d7;
   --color-prim: #6470d7;

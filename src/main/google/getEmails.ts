@@ -30,13 +30,15 @@ function getBody(msg: gmail_v1.Schema$Message): string {
 export async function getEmails({
   maxResults = 3,
   labelIds = ['INBOX'],
-  query = 'category:primary'
+  query = 'category:primary',
+  pageToken
 }: {
   maxResults?: number
   labelIds?: string[]
   query?: string
-} = {}): Promise<
-  Array<{
+  pageToken?: string
+} = {}): Promise<{
+  mails: Array<{
     id?: string
     threadId?: string
     subject?: string
@@ -44,16 +46,21 @@ export async function getEmails({
     snippet?: string
     body?: string
     date?: string
+    isUnread?: boolean
   }>
-> {
+  nextPageToken?: string
+}> {
   const gmail = await getGmailClient()
+  // Exclude SupportPlus/Archived by name to avoid an extra labels call. If it doesn't exist, the filter is harmless.
+  const finalQuery = `${query} -label:"SupportPlus/Archived"`.trim()
   const { data } = await gmail.users.messages.list({
     userId: 'me',
     maxResults,
     labelIds,
-    q: query
+    q: finalQuery,
+    pageToken
   })
-  if (!data.messages) return []
+  if (!data.messages) return { mails: [], nextPageToken: undefined }
   const details = await Promise.all(
     data.messages.map((m) =>
       gmail.users.messages.get({
@@ -63,13 +70,17 @@ export async function getEmails({
       })
     )
   )
-  return details.map((d) => ({
-    id: d.data.id ?? undefined,
-    threadId: d.data.threadId ?? undefined,
-    subject: header(d.data, 'Subject'),
-    from: header(d.data, 'From'),
-    snippet: d.data.snippet ?? undefined,
-    body: getBody(d.data),
-    date: d.data.internalDate ?? undefined
-  }))
+  return {
+    mails: details.map((d) => ({
+      id: d.data.id ?? undefined,
+      threadId: d.data.threadId ?? undefined,
+      subject: header(d.data, 'Subject'),
+      from: header(d.data, 'From'),
+      snippet: d.data.snippet ?? undefined,
+      body: getBody(d.data),
+      date: d.data.internalDate ?? undefined,
+      isUnread: d.data.labelIds?.includes('UNREAD') ?? false
+    })),
+    nextPageToken: data.nextPageToken || undefined
+  }
 }

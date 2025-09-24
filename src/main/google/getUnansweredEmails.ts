@@ -74,17 +74,20 @@ export async function getUnansweredEmails({
     body?: string
     isHtml?: boolean
     date?: string
+    isUnread?: boolean
   }>
   nextPageToken?: string
 }> {
   const gmail = await getGmailClient()
   const myEmail = await getMyEmail(gmail)
-  
+
   // Get the SupportPlus/Archived label ID to exclude it from results
   let archivedLabelId: string | undefined
   try {
     const labelsResponse = await gmail.users.labels.list({ userId: 'me' })
-    const archivedLabel = labelsResponse.data.labels?.find((label) => label.name === 'SupportPlus/Archived')
+    const archivedLabel = labelsResponse.data.labels?.find(
+      (label) => label.name === 'SupportPlus/Archived'
+    )
     archivedLabelId = archivedLabel?.id || undefined
   } catch (error) {
     console.warn('Could not fetch labels for filtering archived emails:', error)
@@ -115,6 +118,7 @@ export async function getUnansweredEmails({
     body?: string
     isHtml?: boolean
     date?: string
+    isUnread?: boolean
   }> = []
 
   for (const msgMeta of data.messages) {
@@ -147,7 +151,8 @@ export async function getUnansweredEmails({
         snippet: lastMsg.snippet ?? undefined,
         body: bodyData.content,
         isHtml: bodyData.isHtml,
-        date: lastMsg.internalDate ?? undefined
+        date: lastMsg.internalDate ?? undefined,
+        isUnread: lastMsg.labelIds?.includes('UNREAD') ?? false
       })
     }
     threadsChecked.add(msgMeta.threadId)
@@ -170,12 +175,14 @@ export async function getUnansweredEmailsCount({
   query?: string
 } = {}): Promise<number> {
   const gmail = await getGmailClient()
-  
+
   // Get the SupportPlus/Archived label ID to exclude it from results
   let archivedLabelId: string | undefined
   try {
     const labelsResponse = await gmail.users.labels.list({ userId: 'me' })
-    const archivedLabel = labelsResponse.data.labels?.find((label) => label.name === 'SupportPlus/Archived')
+    const archivedLabel = labelsResponse.data.labels?.find(
+      (label) => label.name === 'SupportPlus/Archived'
+    )
     archivedLabelId = archivedLabel?.id || undefined
   } catch (error) {
     console.warn('Could not fetch labels for filtering archived emails:', error)

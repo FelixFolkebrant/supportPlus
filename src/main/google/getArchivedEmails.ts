@@ -70,6 +70,7 @@ export async function getArchivedEmails({
     body?: string
     isHtml?: boolean
     date?: string
+    isUnread?: boolean
   }>
   nextPageToken?: string
 }> {
@@ -79,31 +80,23 @@ export async function getArchivedEmails({
   let archivedLabelId: string
   try {
     const labelsResponse = await gmail.users.labels.list({ userId: 'me' })
-    
-    // Debug: Log all custom labels to see what exists
-    const customLabels = labelsResponse.data.labels?.filter(label => 
-      label.name && !label.name.startsWith('CATEGORY_') && !label.name.startsWith('SYSTEM_')
-    ) || []
-    console.log('Custom labels found:', customLabels.map(l => ({ id: l.id, name: l.name })))
-    
+
+    // Resolve archived label
+
     let archivedLabel = labelsResponse.data.labels?.find(
       (label) => label.name === 'SupportPlus/Archived'
     )
-    
+
     // Also check for old ARCHIVED label and clean it up
-    const oldArchivedLabel = labelsResponse.data.labels?.find(
-      (label) => label.name === 'ARCHIVED'
-    )
+    const oldArchivedLabel = labelsResponse.data.labels?.find((label) => label.name === 'ARCHIVED')
     if (oldArchivedLabel?.id && !archivedLabel?.id) {
-      console.log('Found old ARCHIVED label, migrating to SupportPlus/Archived...')
       // For now, just use the old label to avoid disruption
       // TODO: Migrate emails from old label to new label
       archivedLabel = oldArchivedLabel
     }
-    
+
     if (archivedLabel?.id) {
       archivedLabelId = archivedLabel.id
-      console.log(`Using archived label: ${archivedLabel.name} (ID: ${archivedLabelId})`)
     } else {
       // Create the SupportPlus/Archived label if it doesn't exist
       const createLabelResponse = await gmail.users.labels.create({
@@ -115,7 +108,6 @@ export async function getArchivedEmails({
         }
       })
       archivedLabelId = createLabelResponse.data.id!
-      console.log(`Created new archived label: SupportPlus/Archived (ID: ${archivedLabelId})`)
     }
   } catch (error) {
     console.error('Error managing SupportPlus/Archived label:', error)
@@ -124,7 +116,6 @@ export async function getArchivedEmails({
   }
 
   // Get messages with the ARCHIVED label
-  console.log(`Searching for archived emails with label ID: ${archivedLabelId}`)
   const { data } = await gmail.users.messages.list({
     userId: 'me',
     maxResults,
@@ -132,7 +123,6 @@ export async function getArchivedEmails({
     pageToken
   })
 
-  console.log(`Found ${data.messages?.length || 0} archived messages`)
   if (!data.messages) return { mails: [], nextPageToken: undefined }
 
   const threadsChecked = new Set<string>()
@@ -145,6 +135,7 @@ export async function getArchivedEmails({
     body?: string
     isHtml?: boolean
     date?: string
+    isUnread?: boolean
   }> = []
 
   for (const msgMeta of data.messages) {
@@ -164,7 +155,7 @@ export async function getArchivedEmails({
 
     const lastMsg = messages[messages.length - 1]
     const bodyData = getBody(lastMsg)
-    
+
     archived.push({
       id: lastMsg.id ?? undefined,
       threadId: msgMeta.threadId ?? undefined,
@@ -173,7 +164,8 @@ export async function getArchivedEmails({
       snippet: lastMsg.snippet ?? undefined,
       body: bodyData.content,
       isHtml: bodyData.isHtml,
-      date: lastMsg.internalDate ?? undefined
+      date: lastMsg.internalDate ?? undefined,
+      isUnread: lastMsg.labelIds?.includes('UNREAD') ?? false
     })
 
     threadsChecked.add(msgMeta.threadId)
@@ -190,12 +182,14 @@ export async function getArchivedEmails({
  */
 export async function getArchivedEmailsCount(): Promise<number> {
   const gmail = await getGmailClient()
-  
+
   // Find the SupportPlus/Archived label
   try {
     const labelsResponse = await gmail.users.labels.list({ userId: 'me' })
-    const archivedLabel = labelsResponse.data.labels?.find((label) => label.name === 'SupportPlus/Archived')
-    
+    const archivedLabel = labelsResponse.data.labels?.find(
+      (label) => label.name === 'SupportPlus/Archived'
+    )
+
     if (!archivedLabel?.id) {
       return 0 // No SupportPlus/Archived label means no archived emails
     }

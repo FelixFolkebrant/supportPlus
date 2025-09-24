@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useEffect, useRef, useCallback, useState } from 'react'
 import MailPreview from './MailPreview'
 import { useGmail } from '../../hooks/useGmail'
 import { Mail } from '../../hooks/GmailContextValue'
@@ -13,8 +13,17 @@ export function MailSelector({
   selectedMail,
   setSelectedMail
 }: MailSelectorProps): React.ReactElement {
-  const { getCurrentMails, currentView, loading, loadingMore, hasMore, refresh, loadMore } =
-    useGmail()
+  const [archivingIds, setArchivingIds] = useState<Set<string>>(new Set())
+  const {
+    getCurrentMails,
+    currentView,
+    loading,
+    loadingMore,
+    hasMore,
+    refresh,
+    loadMore,
+    markAsRead
+  } = useGmail()
   const currentMails = getCurrentMails()
   const listRef = useRef<HTMLUListElement>(null)
 
@@ -55,6 +64,33 @@ export function MailSelector({
     return () => listElement.removeEventListener('scroll', handleScroll)
   }, [handleScroll])
 
+  // Listen for archiving events to trigger fade-out animation
+  useEffect(() => {
+    const onArchiving = (e: Event): void => {
+      const ce = e as CustomEvent<{ threadId?: string }>
+      const threadId = ce.detail?.threadId
+      if (!threadId) return
+      setArchivingIds((prev) => {
+        const next = new Set(prev)
+        next.add(threadId)
+        return next
+      })
+
+      // Clear the flag after the animation duration to avoid lingering state
+      setTimeout(() => {
+        setArchivingIds((prev) => {
+          const next = new Set(prev)
+          next.delete(threadId)
+          return next
+        })
+      }, 500)
+      // Note: no return here; this is an event handler, cleanup is managed in effect cleanup
+    }
+
+    window.addEventListener('mail:archiving', onArchiving as EventListener)
+    return () => window.removeEventListener('mail:archiving', onArchiving as EventListener)
+  }, [])
+
   return (
     <div className="w-full max-w-xl h-full flex flex-col bg-white shadow-xl border overflow-hidden">
       {/* Mail List */}
@@ -78,10 +114,24 @@ export function MailSelector({
             {currentMails.map((m) => (
               <li
                 key={m.id}
-                className={`rounded-lg transition-all opacity-60 hover:opacity-100 ${selectedMail?.id === m.id ? 'opacity-100' : ''}`}
+                className={`rounded-lg transition-all ${
+                  selectedMail?.id === m.id
+                    ? 'opacity-100'
+                    : m.isUnread
+                      ? 'opacity-100'
+                      : 'opacity-60'
+                } hover:opacity-100 ${archivingIds.has(m.threadId || m.id || '') ? 'animate-fade-out' : ''}`}
               >
-                <div onClick={() => setSelectedMail(m)} className="cursor-pointer rounded-lg">
-                  <MailPreview {...m} active={selectedMail?.id === m.id} />
+                <div
+                  onClick={() => {
+                    setSelectedMail(m)
+                    if (m.isUnread && m.id) {
+                      void markAsRead(m.id)
+                    }
+                  }}
+                  className="cursor-pointer rounded-lg"
+                >
+                  <MailPreview {...m} active={selectedMail?.id === m.id} isUnread={m.isUnread} />
                 </div>
               </li>
             ))}

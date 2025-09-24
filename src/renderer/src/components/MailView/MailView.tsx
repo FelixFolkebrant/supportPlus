@@ -1,4 +1,4 @@
-import type React from 'react'
+import React from 'react'
 import FullMail from './FullMail'
 import { ResponseMail } from './ResponseMail'
 import type { Mail } from '../../hooks/GmailContextValue'
@@ -25,6 +25,7 @@ export function MailView({
   onRegisterMailEditingState
 }: MailViewProps): React.JSX.Element {
   const { removeUnansweredMail, currentView, archiveThread, unarchiveThread } = useGmail()
+  const [archiving, setArchiving] = React.useState(false)
 
   const handleRegisterUpdate = (updateFn: (mailId: string, content: string) => void): void => {
     // Store this update function globally so the chat can call it
@@ -51,6 +52,8 @@ export function MailView({
     if (!selectedMail?.threadId) return
 
     try {
+      if (archiving) return
+      setArchiving(true)
       if (currentView === 'archived') {
         await unarchiveThread(selectedMail.threadId)
       } else {
@@ -59,6 +62,8 @@ export function MailView({
       setSelectedMail(null)
     } catch (error) {
       console.error('Error toggling archive status:', error)
+    } finally {
+      setArchiving(false)
     }
   }
 
@@ -83,16 +88,18 @@ export function MailView({
                 {currentView === 'archived' ? (
                   <button
                     onClick={handleArchiveToggle}
-                    className="ml-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+                    className={`ml-4 px-4 py-2 bg-gray-100 ${archiving ? '' : 'hover:bg-gray-200'} text-gray-700 text-sm font-medium rounded-lg transition-colors ${archiving ? 'opacity-60 cursor-not-allowed' : ''}`}
                     title="Unarchive thread"
+                    disabled={archiving}
                   >
                     Unarchive
                   </button>
                 ) : (
                   <button
                     onClick={handleArchiveToggle}
-                    className="ml-4 p-3 rounded-lg transition-colors hover:bg-gray-100 text-gray-600 hover:text-prim"
+                    className={`ml-4 p-3 rounded-lg transition-colors ${archiving ? '' : 'hover:bg-gray-100'} text-gray-600 ${archiving ? '' : 'hover:text-prim'} ${archiving ? 'opacity-60 cursor-not-allowed' : ''}`}
                     title="Archive thread"
+                    disabled={archiving}
                   >
                     <IconArchive filled={false} size={24} />
                   </button>

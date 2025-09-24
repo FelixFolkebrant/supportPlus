@@ -9,6 +9,7 @@ export type Mail = {
   body?: string
   isHtml?: boolean
   date?: string // timestamp from Gmail API internalDate
+  isUnread?: boolean // whether the message is unread
 }
 
 export interface UserProfile {
@@ -41,6 +42,7 @@ export interface GmailContextType {
   getCurrentMails: () => Mail[]
   archiveThread: (threadId: string) => Promise<void>
   unarchiveThread: (threadId: string) => Promise<void>
+  markAsRead: (messageId?: string) => Promise<void>
 }
 
 export const GmailContext = createContext<GmailContextType | undefined>(undefined)

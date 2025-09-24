@@ -10,8 +10,10 @@ export async function archiveThread(threadId: string): Promise<void> {
     // First, find or create the "SupportPlus/Archived" label
     let archivedLabelId: string
     const labelsResponse = await gmail.users.labels.list({ userId: 'me' })
-    const archivedLabel = labelsResponse.data.labels?.find((label) => label.name === 'SupportPlus/Archived')
-    
+    const archivedLabel = labelsResponse.data.labels?.find(
+      (label) => label.name === 'SupportPlus/Archived'
+    )
+
     if (archivedLabel?.id) {
       archivedLabelId = archivedLabel.id
     } else {
@@ -67,8 +69,10 @@ export async function unarchiveThread(threadId: string): Promise<void> {
   try {
     // Find the SupportPlus/Archived label
     const labelsResponse = await gmail.users.labels.list({ userId: 'me' })
-    const archivedLabel = labelsResponse.data.labels?.find((label) => label.name === 'SupportPlus/Archived')
-    
+    const archivedLabel = labelsResponse.data.labels?.find(
+      (label) => label.name === 'SupportPlus/Archived'
+    )
+
     if (!archivedLabel?.id) {
       console.log('SupportPlus/Archived label not found, thread may not be archived')
       return

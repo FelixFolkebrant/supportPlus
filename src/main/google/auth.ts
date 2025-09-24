@@ -154,12 +154,39 @@ export async function getDriveClient(scopes: string[] = SCOPES): Promise<drive_v
 }
 
 export async function hasValidToken(): Promise<boolean> {
-  const raw = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME)
-  if (!raw) return false
-  const tokens = JSON.parse(raw) as SavedTokens
-  // Check expiry (Google tokens are in ms)
-  if (!tokens.expiry_date || tokens.expiry_date < Date.now()) return false
-  return true
+  try {
+    const raw = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME)
+    if (!raw) return false
+    
+    const tokens = JSON.parse(raw) as SavedTokens
+    
+    // Create a temporary client to test the token
+    const credsPath = isPackaged
+      ? path.join(process.resourcesPath, 'credentials.json')
+      : path.join(app.getAppPath(), 'credentials.json')
+
+    const {
+      installed: { client_id, client_secret }
+    } = JSON.parse(await fs.readFile(credsPath, 'utf-8'))
+
+    const client = new OAuth2Client({ clientId: client_id, clientSecret: client_secret })
+    client.setCredentials(tokens)
+    
+    // Actually test the token by making a simple API call
+    try {
+      await client.getAccessToken()
+      // Make a simple API call to verify the token works
+      const gmail = google.gmail({ version: 'v1', auth: client })
+      await gmail.users.getProfile({ userId: 'me' })
+      return true
+    } catch {
+      // Token is invalid, clean it up
+      await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME)
+      return false
+    }
+  } catch {
+    return false
+  }
 }
 
 export async function logout(): Promise<void> {

@@ -1,5 +1,4 @@
-import { ReactNode, useEffect, useState, useCallback } from 'react'
-import type React from 'react'
+import React, { ReactNode, useEffect, useState, useCallback } from 'react'
 import { GmailContext, Mail, UserProfile, NavView } from './GmailContextValue'
 
 const { ipcRenderer } = window.electron // exposed via contextBridge
@@ -28,7 +27,13 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
     setHasMore(true)
 
     const promises = [
-      ipcRenderer.invoke('gmail:getMails', { maxResults: 3, labelIds: ['INBOX'], query: '' }),
+      // Fetch a small sample of recent inbox mails for header stats; not used for list
+      ipcRenderer.invoke('gmail:getMails', {
+        maxResults: 3,
+        labelIds: ['INBOX'],
+        query: 'category:primary'
+      }),
+      // For the list, when in inbox, we'll fetch inbox mails below; unanswered remains for counts if needed
       ipcRenderer.invoke('gmail:getUnansweredMails', {
         maxResults: MAILS_PER_PAGE,
         labelIds: ['INBOX'],
@@ -57,12 +62,20 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
           query: 'category:primary'
         })
       )
+    } else if (currentView === 'inbox') {
+      promises.push(
+        ipcRenderer.invoke('gmail:getMails', {
+          maxResults: MAILS_PER_PAGE,
+          labelIds: ['INBOX'],
+          query: 'category:primary'
+        })
+      )
     }
 
     Promise.all(promises)
       .then((results) => {
-        const [allData, unansweredData, profileData, countData, additionalData] = results
-        setMails(allData as Mail[])
+        const [, unansweredData, profileData, countData, additionalData] = results
+        // allData is a small sample not used directly for list
         const unansweredResponse = unansweredData as { mails: Mail[]; nextPageToken?: string }
         setUnansweredMails(unansweredResponse.mails)
         setUserProfile(profileData as UserProfile)
@@ -77,6 +90,11 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         } else if (currentView === 'archived' && additionalData) {
           const archivedResponse = additionalData as { mails: Mail[]; nextPageToken?: string }
           setArchivedMails(archivedResponse.mails)
+        } else if (currentView === 'inbox' && additionalData) {
+          const inboxResponse = additionalData as { mails: Mail[]; nextPageToken?: string }
+          setMails(inboxResponse.mails)
+          setNextPageToken(inboxResponse.nextPageToken)
+          setHasMore(!!inboxResponse.nextPageToken)
         }
       })
       .catch((err) => {
@@ -100,10 +118,10 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
 
     switch (currentView) {
       case 'inbox':
-        apiCall = ipcRenderer.invoke('gmail:getUnansweredMails', {
+        apiCall = ipcRenderer.invoke('gmail:getMails', {
           ...baseParams,
           labelIds: ['INBOX'],
-          query: 'category:primary is:unread'
+          query: 'category:primary'
         })
         break
       case 'replied':
@@ -130,7 +148,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
 
         switch (currentView) {
           case 'inbox':
-            setUnansweredMails((prev) => [...prev, ...response.mails])
+            setMails((prev) => [...prev, ...response.mails])
             break
           case 'replied':
             setRepliedMails((prev) => [...prev, ...response.mails])
@@ -145,6 +163,9 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
       })
       .catch((err) => {
         console.error('Error loading more mails:', err)
+        if (err && err.message && err.message.includes('invalid_grant')) {
+          setNeedsLogin(true)
+        }
       })
       .finally(() => setLoadingMore(false))
   }
@@ -152,7 +173,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
   const getCurrentMails = (): Mail[] => {
     switch (currentView) {
       case 'inbox':
-        return unansweredMails
+        return mails
       case 'replied':
         return repliedMails
       case 'archived':
@@ -161,6 +182,29 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         return []
       default:
         return unansweredMails
+    }
+  }
+
+  // Mark a message as read locally in all views
+  const markMailReadLocal = (id?: string): void => {
+    if (!id) return
+    setMails((prev) => prev.map((m) => (m.id === id ? { ...m, isUnread: false } : m)))
+    setUnansweredMails((prev) => prev.map((m) => (m.id === id ? { ...m, isUnread: false } : m)))
+    setRepliedMails((prev) => prev.map((m) => (m.id === id ? { ...m, isUnread: false } : m)))
+    setArchivedMails((prev) => prev.map((m) => (m.id === id ? { ...m, isUnread: false } : m)))
+  }
+
+  // Expose helper to mark a message as read via Gmail and update state
+  const markAsRead = async (messageId?: string): Promise<void> => {
+    if (!messageId) return
+    try {
+      // Optimistic update
+      markMailReadLocal(messageId)
+      await ipcRenderer.invoke('gmail:markAsRead', messageId)
+    } catch (error) {
+      console.error('Failed to mark as read:', error)
+      // On failure, refetch to sync state
+      fetchAll()
     }
   }
 
@@ -189,6 +233,9 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         })
         .catch((err) => {
           console.error('Error loading replied mails:', err)
+          if (err && err.message && err.message.includes('invalid_grant')) {
+            setNeedsLogin(true)
+          }
         })
         .finally(() => setLoading(false))
     } else if (view === 'archived' && archivedMails.length === 0) {
@@ -206,6 +253,9 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         })
         .catch((err) => {
           console.error('Error loading archived mails:', err)
+          if (err && err.message && err.message.includes('invalid_grant')) {
+            setNeedsLogin(true)
+          }
         })
         .finally(() => setLoading(false))
     }
@@ -248,12 +298,21 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
 
   const archiveThread = async (threadId: string): Promise<void> => {
     try {
+      // Trigger a UI animation for the item in the list before actual removal
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('mail:archiving', { detail: { threadId } }))
+      }
+
       await ipcRenderer.invoke('gmail:archiveThread', threadId)
-      
+
+      // Give the animation a brief moment to play before removing
+      await new Promise((resolve) => setTimeout(resolve, 220))
+
       // Remove the thread from inbox and replied views
+      setMails((prev) => prev.filter((m) => m.threadId !== threadId))
       setUnansweredMails((prev) => prev.filter((m) => m.threadId !== threadId))
       setRepliedMails((prev) => prev.filter((m) => m.threadId !== threadId))
-      
+
       // Refresh archived mails to show the newly archived thread
       const archivedData = await ipcRenderer.invoke('gmail:getArchivedMails', {
         maxResults: MAILS_PER_PAGE
@@ -269,10 +328,10 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
   const unarchiveThread = async (threadId: string): Promise<void> => {
     try {
       await ipcRenderer.invoke('gmail:unarchiveThread', threadId)
-      
+
       // Remove the thread from archived view
       setArchivedMails((prev) => prev.filter((m) => m.threadId !== threadId))
-      
+
       // Refresh other views to potentially show the unarchived thread
       fetchAll()
     } catch (error) {
@@ -314,7 +373,8 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         setCurrentView: handleSetCurrentView,
         getCurrentMails,
         archiveThread,
-        unarchiveThread
+        unarchiveThread,
+        markAsRead
       }}
     >
       {children}
