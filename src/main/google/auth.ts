@@ -157,9 +157,9 @@ export async function hasValidToken(): Promise<boolean> {
   try {
     const raw = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME)
     if (!raw) return false
-    
+
     const tokens = JSON.parse(raw) as SavedTokens
-    
+
     // Create a temporary client to test the token
     const credsPath = isPackaged
       ? path.join(process.resourcesPath, 'credentials.json')
@@ -171,7 +171,7 @@ export async function hasValidToken(): Promise<boolean> {
 
     const client = new OAuth2Client({ clientId: client_id, clientSecret: client_secret })
     client.setCredentials(tokens)
-    
+
     // Actually test the token by making a simple API call
     try {
       await client.getAccessToken()
