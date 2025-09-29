@@ -5,6 +5,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import './google/auth'
 import { getEmails } from './google/getEmails'
+import { getFilteredEmails } from './google/getFilteredEmails'
 import { getUnansweredEmails, getUnansweredEmailsCount } from './google/getUnansweredEmails'
 import { getRepliedEmails, getRepliedEmailsCount } from './google/getRepliedEmails'
 import { getArchivedEmails, getArchivedEmailsCount } from './google/getArchivedEmails'
@@ -87,6 +88,10 @@ function calculateOptimalZoom(): number {
 // Gmail and other existing IPC handlers
 ipcMain.handle('gmail:getMails', async (_event, args) => {
   return await getEmails(args)
+})
+
+ipcMain.handle('gmail:getFilteredMails', async (_event, args) => {
+  return await getFilteredEmails(args)
 })
 
 ipcMain.handle('gmail:getUnansweredMails', async (_event, args) => {

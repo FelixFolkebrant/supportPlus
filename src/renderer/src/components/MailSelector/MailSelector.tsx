@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react'
 import MailPreview from './MailPreview'
+import SortDropdown from './SortDropdown'
 import { useGmail } from '../../hooks/useGmail'
 import { Mail } from '../../hooks/GmailContextValue'
 import IconReload from '../ui/icons/IconReload'
@@ -100,9 +101,12 @@ export function MailSelector({
             <h2 className="text-2xl text-black">{getViewTitle()}</h2>
             <h3 className="text-sm text-third pb-0.5">{currentMails.length} mails</h3>
           </div>
-          <button onClick={refresh} className="text-sm cursor-pointer text-third hover:text-prim">
-            <IconReload />
-          </button>
+          <div className="flex items-center gap-3">
+            {currentView === 'inbox' && <SortDropdown />}
+            <button onClick={refresh} className="text-sm cursor-pointer text-third hover:text-prim">
+              <IconReload />
+            </button>
+          </div>
         </div>
         <div className="w-full h-12 bg-bg items-center rounded-20 flex px-6">
           <p className="text-third">Search</p>

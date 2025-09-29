@@ -1,5 +1,12 @@
 import React, { ReactNode, useEffect, useState, useCallback } from 'react'
-import { GmailContext, Mail, UserProfile, NavView } from './GmailContextValue'
+import {
+  GmailContext,
+  Mail,
+  UserProfile,
+  NavView,
+  SortFilter,
+  SortState
+} from './GmailContextValue'
 
 const { ipcRenderer } = window.electron // exposed via contextBridge
 
@@ -9,6 +16,10 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
   const [repliedMails, setRepliedMails] = useState<Mail[]>([])
   const [archivedMails, setArchivedMails] = useState<Mail[]>([])
   const [currentView, setCurrentView] = useState<NavView>('inbox')
+  const [sortState, setSortStateInternal] = useState<SortState>({
+    filter: 'all',
+    isActive: false
+  })
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
@@ -19,6 +30,16 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
   const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined)
 
   const MAILS_PER_PAGE = 8
+
+  const setSortFilter = useCallback((filter: SortFilter): void => {
+    setSortStateInternal({
+      filter,
+      isActive: filter !== 'all'
+    })
+    // Reset pagination when changing filter
+    setNextPageToken(undefined)
+    setHasMore(true)
+  }, [])
 
   const fetchAll = useCallback((): void => {
     setLoading(true)
@@ -64,10 +85,11 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
       )
     } else if (currentView === 'inbox') {
       promises.push(
-        ipcRenderer.invoke('gmail:getMails', {
+        ipcRenderer.invoke('gmail:getFilteredMails', {
           maxResults: MAILS_PER_PAGE,
           labelIds: ['INBOX'],
-          query: 'category:primary'
+          baseQuery: 'category:primary',
+          sortFilter: sortState.filter
         })
       )
     }
@@ -103,7 +125,14 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         }
       })
       .finally(() => setLoading(false))
-  }, [currentView])
+  }, [currentView, sortState.filter])
+
+  // Trigger refresh when sort filter changes
+  useEffect(() => {
+    if (currentView === 'inbox') {
+      fetchAll()
+    }
+  }, [sortState.filter, fetchAll, currentView])
 
   const loadMore = (): void => {
     if (loadingMore || !hasMore || !nextPageToken) return
@@ -118,10 +147,11 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
 
     switch (currentView) {
       case 'inbox':
-        apiCall = ipcRenderer.invoke('gmail:getMails', {
+        apiCall = ipcRenderer.invoke('gmail:getFilteredMails', {
           ...baseParams,
           labelIds: ['INBOX'],
-          query: 'category:primary'
+          baseQuery: 'category:primary',
+          sortFilter: sortState.filter
         })
         break
       case 'replied':
@@ -358,6 +388,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         repliedMails,
         archivedMails,
         currentView,
+        sortState,
         userProfile,
         loading,
         loadingMore,
@@ -371,6 +402,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         logout,
         removeUnansweredMail,
         setCurrentView: handleSetCurrentView,
+        setSortFilter,
         getCurrentMails,
         archiveThread,
         unarchiveThread,

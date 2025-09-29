@@ -20,12 +20,20 @@ export interface UserProfile {
 
 export type NavView = 'inbox' | 'replied' | 'archived' | 'settings'
 
+export type SortFilter = 'all' | 'unread-only' | 'this-week'
+
+export interface SortState {
+  filter: SortFilter
+  isActive: boolean
+}
+
 export interface GmailContextType {
   mails: Mail[]
   unansweredMails: Mail[]
   repliedMails: Mail[]
   archivedMails: Mail[]
   currentView: NavView
+  sortState: SortState
   userProfile: UserProfile | null
   loading: boolean
   loadingMore: boolean
@@ -39,6 +47,7 @@ export interface GmailContextType {
   logout: () => void
   removeUnansweredMail: (mailId: string) => void
   setCurrentView: (view: NavView) => void
+  setSortFilter: (filter: SortFilter) => void
   getCurrentMails: () => Mail[]
   archiveThread: (threadId: string) => Promise<void>
   unarchiveThread: (threadId: string) => Promise<void>
