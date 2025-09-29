@@ -1,4 +1,5 @@
-import * as React from 'react'
+import React from 'react'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface SendButtonProps {
   onSend: () => void
@@ -33,10 +34,7 @@ export const SendButton: React.FC<SendButtonProps> = ({
           `}
         >
           {autoDrafting ? (
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-              <span>Auto-drafting...</span>
-            </div>
+            <LoadingSpinner size="sm" text="Auto-drafting..." color="white" type="circular" />
           ) : (
             'Auto-draft'
           )}
@@ -56,10 +54,7 @@ export const SendButton: React.FC<SendButtonProps> = ({
         `}
       >
         {loading ? (
-          <div className="flex items-center space-x-2">
-            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-            <span>Sending...</span>
-          </div>
+          <LoadingSpinner size="sm" text="Sending..." color="white" type="circular" />
         ) : (
           'Send Reply'
         )}

@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react'
 import MailPreview from './MailPreview'
 import SortDropdown from './SortDropdown'
+import SearchInput from './SearchInput'
 import { useGmail } from '../../hooks/useGmail'
 import { Mail } from '../../hooks/GmailContextValue'
 import IconReload from '../ui/icons/IconReload'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface MailSelectorProps {
   selectedMail: Mail | null
@@ -23,7 +25,9 @@ export function MailSelector({
     hasMore,
     refresh,
     loadMore,
-    markAsRead
+    markAsRead,
+    sortState,
+    searchState
   } = useGmail()
   const currentMails = getCurrentMails()
   const listRef = useRef<HTMLUListElement>(null)
@@ -42,6 +46,15 @@ export function MailSelector({
       default:
         return 'Inbox'
     }
+  }
+
+  // Get mail count description
+  const getMailCountDescription = (): string => {
+    const isFiltered = sortState.isActive || searchState.isActive
+    if (isFiltered) {
+      return `${currentMails.length} filtered mails`
+    }
+    return `${currentMails.length} mails`
   }
 
   // Infinite scroll handler
@@ -99,7 +112,7 @@ export function MailSelector({
         <div className="w-full pb-4 flex justify-between pt-6">
           <div className="flex items-end gap-4">
             <h2 className="text-2xl text-black">{getViewTitle()}</h2>
-            <h3 className="text-sm text-third pb-0.5">{currentMails.length} mails</h3>
+            <h3 className="text-sm text-third pb-0.5">{getMailCountDescription()}</h3>
           </div>
           <div className="flex items-center gap-3">
             {currentView === 'inbox' && <SortDropdown />}
@@ -108,9 +121,7 @@ export function MailSelector({
             </button>
           </div>
         </div>
-        <div className="w-full h-12 bg-bg items-center rounded-20 flex px-6">
-          <p className="text-third">Search</p>
-        </div>
+        <SearchInput placeholder="Search emails..." />
       </div>
       <ul ref={listRef} className="flex flex-col flex-1 overflow-y-auto scrollbar-hide bg-white">
         {Array.isArray(currentMails) && currentMails.length > 0 ? (
@@ -141,22 +152,7 @@ export function MailSelector({
             ))}
             {loadingMore && (
               <li className="flex justify-center py-4">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <svg
-                    className="w-4 h-4 animate-spin"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                  Loading more mails...
-                </div>
+                <LoadingSpinner size="sm" text="Loading more mails..." color="gray" />
               </li>
             )}
             {!hasMore && currentMails.length > 0 && (
@@ -166,21 +162,8 @@ export function MailSelector({
             )}
           </>
         ) : loading ? (
-          <li className="flex flex-col items-center justify-center py-10 text-blue-400">
-            <svg
-              className="w-8 h-8 animate-spin mb-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            Loading mails...
+          <li className="flex flex-col items-center justify-center py-10">
+            <LoadingSpinner size="lg" text="Loading mails..." color="blue" />
           </li>
         ) : (
           <li className="flex flex-col items-center justify-center py-10 text-gray-400">

@@ -27,6 +27,11 @@ export interface SortState {
   isActive: boolean
 }
 
+export interface SearchState {
+  query: string
+  isActive: boolean
+}
+
 export interface GmailContextType {
   mails: Mail[]
   unansweredMails: Mail[]
@@ -34,6 +39,7 @@ export interface GmailContextType {
   archivedMails: Mail[]
   currentView: NavView
   sortState: SortState
+  searchState: SearchState
   userProfile: UserProfile | null
   loading: boolean
   loadingMore: boolean
@@ -48,6 +54,7 @@ export interface GmailContextType {
   removeUnansweredMail: (mailId: string) => void
   setCurrentView: (view: NavView) => void
   setSortFilter: (filter: SortFilter) => void
+  setSearchQuery: (query: string) => void
   getCurrentMails: () => Mail[]
   archiveThread: (threadId: string) => Promise<void>
   unarchiveThread: (threadId: string) => Promise<void>

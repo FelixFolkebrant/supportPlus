@@ -64,12 +64,14 @@ export async function getFilteredEmails({
   labelIds = ['INBOX'],
   baseQuery = 'category:primary',
   sortFilter = 'all',
+  searchQuery = '',
   pageToken
 }: {
   maxResults?: number
   labelIds?: string[]
   baseQuery?: string
   sortFilter?: 'all' | 'unread-only' | 'this-week'
+  searchQuery?: string
   pageToken?: string
 } = {}): Promise<{
   mails: Array<{
@@ -89,18 +91,23 @@ export async function getFilteredEmails({
   // Build the query based on sort filter
   let query = baseQuery
   
+  // Add search query if provided
+  if (searchQuery.trim()) {
+    query = `${baseQuery} ${searchQuery.trim()}`
+  }
+  
   switch (sortFilter) {
     case 'unread-only':
-      query = `${baseQuery} is:unread`
+      query = `${query} is:unread`
       break
     case 'this-week': {
       const { after, before } = getThisWeekDateRange()
-      query = `${baseQuery} after:${after} before:${before}`
+      query = `${query} after:${after} before:${before}`
       break
     }
     case 'all':
     default:
-      // Keep the base query as is
+      // Keep the query as is (baseQuery + searchQuery if provided)
       break
   }
   

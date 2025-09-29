@@ -5,7 +5,8 @@ import {
   UserProfile,
   NavView,
   SortFilter,
-  SortState
+  SortState,
+  SearchState
 } from './GmailContextValue'
 
 const { ipcRenderer } = window.electron // exposed via contextBridge
@@ -18,6 +19,10 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
   const [currentView, setCurrentView] = useState<NavView>('inbox')
   const [sortState, setSortStateInternal] = useState<SortState>({
     filter: 'all',
+    isActive: false
+  })
+  const [searchState, setSearchStateInternal] = useState<SearchState>({
+    query: '',
     isActive: false
   })
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
@@ -37,6 +42,16 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
       isActive: filter !== 'all'
     })
     // Reset pagination when changing filter
+    setNextPageToken(undefined)
+    setHasMore(true)
+  }, [])
+
+  const setSearchQuery = useCallback((query: string): void => {
+    setSearchStateInternal({
+      query,
+      isActive: query.trim() !== ''
+    })
+    // Reset pagination when changing search
     setNextPageToken(undefined)
     setHasMore(true)
   }, [])
@@ -89,7 +104,8 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
           maxResults: MAILS_PER_PAGE,
           labelIds: ['INBOX'],
           baseQuery: 'category:primary',
-          sortFilter: sortState.filter
+          sortFilter: sortState.filter,
+          searchQuery: searchState.query
         })
       )
     }
@@ -125,14 +141,14 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         }
       })
       .finally(() => setLoading(false))
-  }, [currentView, sortState.filter])
+  }, [currentView, sortState.filter, searchState.query])
 
-  // Trigger refresh when sort filter changes
+  // Trigger refresh when sort filter or search query changes
   useEffect(() => {
     if (currentView === 'inbox') {
       fetchAll()
     }
-  }, [sortState.filter, fetchAll, currentView])
+  }, [sortState.filter, searchState.query, fetchAll, currentView])
 
   const loadMore = (): void => {
     if (loadingMore || !hasMore || !nextPageToken) return
@@ -151,7 +167,8 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
           ...baseParams,
           labelIds: ['INBOX'],
           baseQuery: 'category:primary',
-          sortFilter: sortState.filter
+          sortFilter: sortState.filter,
+          searchQuery: searchState.query
         })
         break
       case 'replied':
@@ -389,6 +406,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         archivedMails,
         currentView,
         sortState,
+        searchState,
         userProfile,
         loading,
         loadingMore,
@@ -403,6 +421,7 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         removeUnansweredMail,
         setCurrentView: handleSetCurrentView,
         setSortFilter,
+        setSearchQuery,
         getCurrentMails,
         archiveThread,
         unarchiveThread,

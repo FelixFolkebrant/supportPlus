@@ -9,6 +9,7 @@ import React, {
 import type { Mail } from '../../hooks/GmailContextValue'
 import { SendButton } from './SendButton'
 import { useEmail } from '../../hooks/useEmail'
+import LoadingSpinner from '../ui/LoadingSpinner'
 import { generateAutoDraft } from '../../api/openai'
 
 interface ResponseMailRef {
@@ -185,10 +186,10 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
         {/* Content */}
         <div className="py-2 px-4">
           {sendStatus === 'sending' && (
-            <div className="flex items-center justify-center min-h-[200px] text-blue-600">
+            <div className="flex items-center justify-center min-h-[200px]">
               <div className="flex flex-col items-center space-y-3">
-                <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                <span className="font-medium">Sending message...</span>
+                <LoadingSpinner size="md" color="blue" type="circular" />
+                <span className="font-medium text-blue-600">Sending message...</span>
               </div>
             </div>
           )}
@@ -332,7 +333,7 @@ export const ResponseMail = forwardRef<ResponseMailRef, ResponseMailProps>(funct
                 {isAiEditing && (
                   <div className="absolute inset-0 bg-blue-50 bg-opacity-95 flex items-center justify-center rounded-lg border-2 border-blue-200">
                     <div className="flex flex-col items-center space-y-4 text-blue-700">
-                      <div className="animate-spin h-10 w-10 border-3 border-blue-600 border-t-transparent rounded-full"></div>
+                      <LoadingSpinner size="lg" color="blue" type="circular" />
                       <div className="text-center">
                         <div className="font-semibold text-lg">AI Assistant is editing...</div>
                         <div className="text-sm text-blue-600 mt-1">
