@@ -13,6 +13,7 @@ import { getGmailClient, hasValidToken, logout as gmailLogout, sendReply } from 
 import { getUserProfile } from './google/getUserProfile'
 import { archiveThread, unarchiveThread } from './google/archiveThread'
 import { setupDriveHandlers } from './google/drive'
+import { resolveCidImages } from './google/resolveCidImages'
 
 import { autoUpdater } from 'electron-updater'
 import log from 'electron-log'
@@ -146,6 +147,11 @@ ipcMain.handle('gmail:getUserProfile', async () => {
 
 ipcMain.handle('gmail:sendReply', async (_event, { messageId, body }) => {
   return await sendReply(messageId, body)
+})
+
+// Resolve cid: image sources to data URIs for a given message
+ipcMain.handle('gmail:resolveCidImages', async (_event, messageId: string) => {
+  return await resolveCidImages(messageId)
 })
 
 // Mark a message as read by removing the UNREAD label

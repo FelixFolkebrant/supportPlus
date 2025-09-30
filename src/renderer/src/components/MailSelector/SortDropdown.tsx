@@ -64,7 +64,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({ className = '' }) => {
         <>
           {/* Backdrop */}
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          
+
           {/* Dropdown */}
           <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
             <div className="py-2">

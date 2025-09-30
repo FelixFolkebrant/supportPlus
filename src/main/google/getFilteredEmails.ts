@@ -5,26 +5,44 @@ function header(msg: gmail_v1.Schema$Message, name: string): string {
   return msg.payload?.headers?.find((h) => h.name === name)?.value ?? ''
 }
 
-function getBody(msg: gmail_v1.Schema$Message): string {
-  if (!msg.payload) return ''
-  // Prefer plain text part
+function getBody(msg: gmail_v1.Schema$Message): { content: string; isHtml: boolean } {
+  if (!msg.payload) return { content: '', isHtml: false }
+  // Prefer HTML part
   if (msg.payload.parts) {
     for (const part of msg.payload.parts) {
+      if (part.mimeType === 'text/html' && part.body?.data) {
+        return {
+          content: Buffer.from(part.body.data, 'base64').toString('utf-8'),
+          isHtml: true
+        }
+      }
+    }
+    // fallback to plain text part
+    for (const part of msg.payload.parts) {
       if (part.mimeType === 'text/plain' && part.body?.data) {
-        return Buffer.from(part.body.data, 'base64').toString('utf-8')
+        return {
+          content: Buffer.from(part.body.data, 'base64').toString('utf-8'),
+          isHtml: false
+        }
       }
     }
     // fallback to any part with data
     for (const part of msg.payload.parts) {
       if (part.body?.data) {
-        return Buffer.from(part.body.data, 'base64').toString('utf-8')
+        return {
+          content: Buffer.from(part.body.data, 'base64').toString('utf-8'),
+          isHtml: part.mimeType === 'text/html'
+        }
       }
     }
   }
   if (msg.payload.body?.data) {
-    return Buffer.from(msg.payload.body.data, 'base64').toString('utf-8')
+    return {
+      content: Buffer.from(msg.payload.body.data, 'base64').toString('utf-8'),
+      isHtml: msg.payload.mimeType === 'text/html'
+    }
   }
-  return ''
+  return { content: '', isHtml: false }
 }
 
 /**
@@ -34,25 +52,25 @@ function getBody(msg: gmail_v1.Schema$Message): string {
 function getThisWeekDateRange(): { after: string; before: string } {
   const now = new Date()
   const startOfWeek = new Date(now)
-  
+
   // Get Monday of current week
   const dayOfWeek = now.getDay()
   const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
   startOfWeek.setDate(now.getDate() + diffToMonday)
   startOfWeek.setHours(0, 0, 0, 0)
-  
+
   // Get end of current week (Sunday)
   const endOfWeek = new Date(startOfWeek)
   endOfWeek.setDate(startOfWeek.getDate() + 6)
   endOfWeek.setHours(23, 59, 59, 999)
-  
+
   const formatDate = (date: Date): string => {
     const year = date.getFullYear()
     const month = (date.getMonth() + 1).toString().padStart(2, '0')
     const day = date.getDate().toString().padStart(2, '0')
     return `${year}/${month}/${day}`
   }
-  
+
   return {
     after: formatDate(startOfWeek),
     before: formatDate(endOfWeek)
@@ -81,21 +99,22 @@ export async function getFilteredEmails({
     from?: string
     snippet?: string
     body?: string
+    isHtml?: boolean
     date?: string
     isUnread?: boolean
   }>
   nextPageToken?: string
 }> {
   const gmail = await getGmailClient()
-  
+
   // Build the query based on sort filter
   let query = baseQuery
-  
+
   // Add search query if provided
   if (searchQuery.trim()) {
     query = `${baseQuery} ${searchQuery.trim()}`
   }
-  
+
   switch (sortFilter) {
     case 'unread-only':
       query = `${query} is:unread`
@@ -110,10 +129,10 @@ export async function getFilteredEmails({
       // Keep the query as is (baseQuery + searchQuery if provided)
       break
   }
-  
+
   // Exclude SupportPlus/Archived by name to avoid an extra labels call
   const finalQuery = `${query} -label:"SupportPlus/Archived"`.trim()
-  
+
   const { data } = await gmail.users.messages.list({
     userId: 'me',
     maxResults,
@@ -121,9 +140,9 @@ export async function getFilteredEmails({
     q: finalQuery,
     pageToken
   })
-  
+
   if (!data.messages) return { mails: [], nextPageToken: undefined }
-  
+
   const details = await Promise.all(
     data.messages.map((m) =>
       gmail.users.messages.get({
@@ -133,18 +152,22 @@ export async function getFilteredEmails({
       })
     )
   )
-  
+
   return {
-    mails: details.map((d) => ({
-      id: d.data.id ?? undefined,
-      threadId: d.data.threadId ?? undefined,
-      subject: header(d.data, 'Subject'),
-      from: header(d.data, 'From'),
-      snippet: d.data.snippet ?? undefined,
-      body: getBody(d.data),
-      date: d.data.internalDate ?? undefined,
-      isUnread: d.data.labelIds?.includes('UNREAD') ?? false
-    })),
+    mails: details.map((d) => {
+      const bodyData = getBody(d.data)
+      return {
+        id: d.data.id ?? undefined,
+        threadId: d.data.threadId ?? undefined,
+        subject: header(d.data, 'Subject'),
+        from: header(d.data, 'From'),
+        snippet: d.data.snippet ?? undefined,
+        body: bodyData.content,
+        isHtml: bodyData.isHtml,
+        date: d.data.internalDate ?? undefined,
+        isUnread: d.data.labelIds?.includes('UNREAD') ?? false
+      }
+    }),
     nextPageToken: data.nextPageToken || undefined
   }
 }
