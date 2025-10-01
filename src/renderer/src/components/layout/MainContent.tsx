@@ -24,6 +24,7 @@ export function MainContent({ onLogout }: MainContentProps): React.JSX.Element {
   const { selectedMail, setSelectedMail } = useMailSelection(currentMails)
   const [mailEditingState, setMailEditingState] = useState<(isEditing: boolean) => void>()
   const [selectedSettingId, setSelectedSettingId] = useState<string | null>('chat') // Default to chat settings
+  const [inboxCollapsed, setInboxCollapsed] = useState(false)
 
   // Function to update response mail content (called by AI chat)
   const updateResponseMail = (mailId: string, content: string): void => {
@@ -39,7 +40,7 @@ export function MainContent({ onLogout }: MainContentProps): React.JSX.Element {
 
   return (
     <div className="flex flex-1 h-full w-full overflow-hidden">
-      <Navbar onLogout={onLogout} />
+      <Navbar onLogout={onLogout} onActiveNavClick={() => setInboxCollapsed((v) => !v)} />
 
       {currentView === 'settings' ? (
         <>
@@ -59,9 +60,11 @@ export function MainContent({ onLogout }: MainContentProps): React.JSX.Element {
       ) : (
         <>
           {/* Mail Selector - Left Panel */}
-          <div className="flex-none w-[500px] h-full min-w-0 overflow-hidden">
-            <MailSelector selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
-          </div>
+          {!inboxCollapsed && (
+            <div className="flex-none w-[500px] h-full min-w-0 overflow-hidden">
+              <MailSelector selectedMail={selectedMail} setSelectedMail={setSelectedMail} />
+            </div>
+          )}
 
           {/* Mail View - Center Panel */}
           <div className="flex-1 h-full min-w-0 overflow-hidden">
@@ -69,6 +72,8 @@ export function MainContent({ onLogout }: MainContentProps): React.JSX.Element {
               selectedMail={selectedMail}
               setSelectedMail={setSelectedMail}
               onRegisterMailEditingState={handleRegisterMailEditingState}
+              inboxCollapsed={inboxCollapsed}
+              onToggleInbox={() => setInboxCollapsed((v) => !v)}
             />
           </div>
 

@@ -5,6 +5,12 @@ import type { Mail } from '../../hooks/GmailContextValue'
 import { useGmail } from '../../hooks/useGmail'
 import { AnimatePresence, motion } from 'framer-motion'
 import IconArchive from '../ui/icons/IconArchive'
+import IconFullscreenEnter from '../ui/icons/IconFullscreenEnter'
+import IconFullscreenExit from '../ui/icons/IconFullscreenExit'
+import IconChevronLeft from '../ui/icons/IconChevronLeft'
+import IconChevronRight from '../ui/icons/IconChevronRight'
+import IconZoomIn from '../ui/icons/IconZoomIn'
+import IconZoomOut from '../ui/icons/IconZoomOut'
 
 // Extend Window interface for our global function
 declare global {
@@ -17,15 +23,35 @@ interface MailViewProps {
   selectedMail: Mail | null
   setSelectedMail: (mail: Mail | null) => void
   onRegisterMailEditingState?: (setEditingState: (isEditing: boolean) => void) => void
+  inboxCollapsed?: boolean
+  onToggleInbox?: () => void
 }
 
 export function MailView({
   selectedMail,
   setSelectedMail,
-  onRegisterMailEditingState
+  onRegisterMailEditingState,
+  inboxCollapsed = false,
+  onToggleInbox
 }: MailViewProps): React.JSX.Element {
   const { removeUnansweredMail, currentView, archiveThread, unarchiveThread } = useGmail()
   const [archiving, setArchiving] = React.useState(false)
+  const { getCurrentMails } = useGmail()
+  const [mailZoom, setMailZoom] = React.useState(1)
+
+  const handlePrevMail = (): void => {
+    if (!selectedMail) return
+    const list = getCurrentMails()
+    const idx = list.findIndex((m) => m.id === selectedMail.id)
+    if (idx > 0) setSelectedMail(list[idx - 1])
+  }
+
+  const handleNextMail = (): void => {
+    if (!selectedMail) return
+    const list = getCurrentMails()
+    const idx = list.findIndex((m) => m.id === selectedMail.id)
+    if (idx >= 0 && idx < list.length - 1) setSelectedMail(list[idx + 1])
+  }
 
   const handleRegisterUpdate = (updateFn: (mailId: string, content: string) => void): void => {
     // Store this update function globally so the chat can call it
@@ -82,28 +108,98 @@ export function MailView({
             {/* Sticky Header with Title and Sender */}
             <div className="sticky top-0 bg-white z-10 px-12 pt-16 pb-4 border-b border-gray-100">
               <div className="flex justify-between items-start mb-1.5">
-                <h2 className="font-bold text-secondary text-3xl select-text">
-                  {selectedMail.subject}
-                </h2>
-                {currentView === 'archived' ? (
-                  <button
-                    onClick={handleArchiveToggle}
-                    className={`ml-4 px-4 py-2 bg-gray-100 ${archiving ? '' : 'hover:bg-gray-200'} text-gray-700 text-sm font-medium rounded-lg transition-colors ${archiving ? 'opacity-60 cursor-not-allowed' : ''}`}
-                    title="Unarchive thread"
-                    disabled={archiving}
-                  >
-                    Unarchive
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleArchiveToggle}
-                    className={`ml-4 p-3 rounded-lg transition-colors ${archiving ? '' : 'hover:bg-gray-100'} text-gray-600 ${archiving ? '' : 'hover:text-prim'} ${archiving ? 'opacity-60 cursor-not-allowed' : ''}`}
-                    title="Archive thread"
-                    disabled={archiving}
-                  >
-                    <IconArchive filled={false} size={24} />
-                  </button>
-                )}
+                {/* Left: subject */}
+                <div className="flex items-center gap-2">
+                  <h2 className="font-bold text-secondary text-3xl select-text">
+                    {selectedMail.subject}
+                  </h2>
+                </div>
+                {/* Right: two rows of controls */}
+                <div className="flex flex-col items-end gap-1">
+                  {/* Upper row: prev/next, fullscreen, archive */}
+                  <div className="flex items-center gap-1">
+                    {(() => {
+                      const list = getCurrentMails()
+                      const idx = list.findIndex((m) => m.id === selectedMail.id)
+                      return idx > 0 ? (
+                        <button
+                          onClick={handlePrevMail}
+                          className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-600"
+                          title="Previous mail"
+                        >
+                          <IconChevronLeft size={20} />
+                        </button>
+                      ) : null
+                    })()}
+                    {(() => {
+                      const list = getCurrentMails()
+                      const idx = list.findIndex((m) => m.id === selectedMail.id)
+                      return idx >= 0 && idx < list.length - 1 ? (
+                        <button
+                          onClick={handleNextMail}
+                          className="p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-600"
+                          title="Next mail"
+                        >
+                          <IconChevronRight size={20} />
+                        </button>
+                      ) : null
+                    })()}
+                    <button
+                      onClick={onToggleInbox}
+                      className={`p-2 rounded-lg transition-colors hover:bg-gray-100 text-gray-600 ${onToggleInbox ? '' : 'cursor-default opacity-50'}`}
+                      title={inboxCollapsed ? 'Show inbox' : 'Hide inbox'}
+                      disabled={!onToggleInbox}
+                    >
+                      {inboxCollapsed ? (
+                        <IconFullscreenExit size={22} />
+                      ) : (
+                        <IconFullscreenEnter size={22} />
+                      )}
+                    </button>
+                    {currentView === 'archived' ? (
+                      <button
+                        onClick={handleArchiveToggle}
+                        className={`ml-1 px-4 py-2 bg-gray-100 ${archiving ? '' : 'hover:bg-gray-200'} text-gray-700 text-sm font-medium rounded-lg transition-colors ${archiving ? 'opacity-60 cursor-not-allowed' : ''}`}
+                        title="Unarchive thread"
+                        disabled={archiving}
+                      >
+                        Unarchive
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleArchiveToggle}
+                        className={`ml-1 p-3 rounded-lg transition-colors ${archiving ? '' : 'hover:bg-gray-100'} text-gray-600 ${archiving ? '' : 'hover:text-prim'} ${archiving ? 'opacity-60 cursor-not-allowed' : ''}`}
+                        title="Archive thread"
+                        disabled={archiving}
+                      >
+                        <IconArchive filled={false} size={24} />
+                      </button>
+                    )}
+                  </div>
+                  {/* Lower row: zoom out, percentage, zoom in */}
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <button
+                      onClick={() =>
+                        setMailZoom((z) => Math.max(0.8, Math.round((z - 0.1) * 10) / 10))
+                      }
+                      className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+                      title="Zoom out"
+                    >
+                      <IconZoomOut size={16} />
+                    </button>
+                    <span className="min-w-[3ch] text-center">{Math.round(mailZoom * 100)}%</span>
+                    <button
+                      onClick={() =>
+                        setMailZoom((z) => Math.min(2, Math.round((z + 0.1) * 10) / 10))
+                      }
+                      className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+                      title="Zoom in"
+                    >
+                      <IconZoomIn size={16} />
+                    </button>
+                  </div>
+                </div>
+                {/* end Right-side controls */}
               </div>
               <div className="text-lg text-third mb-3">
                 {selectedMail.from?.replace(/\s*<[^>]+>/, '').trim()}
@@ -112,7 +208,7 @@ export function MailView({
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto px-12">
-              <FullMail {...selectedMail} />
+              <FullMail {...selectedMail} zoom={mailZoom} />
               <ResponseMail
                 mail={selectedMail}
                 onRegisterUpdate={handleRegisterUpdate}
@@ -123,24 +219,7 @@ export function MailView({
             </div>
           </motion.div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            <div className="text-center">
-              <svg
-                className="w-16 h-16 mx-auto mb-4 opacity-50"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-              <p className="text-lg">Select a mail to view and respond</p>
-            </div>
-          </div>
+          <></>
         )}
       </AnimatePresence>
     </div>

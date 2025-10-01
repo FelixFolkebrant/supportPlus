@@ -10,9 +10,10 @@ import { useGmail } from '../../hooks/useGmail'
 
 interface NavbarProps {
   onLogout?: () => void
+  onActiveNavClick?: () => void
 }
 
-export default function Navbar({ onLogout }: NavbarProps): React.ReactElement {
+export default function Navbar({ onLogout, onActiveNavClick }: NavbarProps): React.ReactElement {
   const { currentView, setCurrentView } = useGmail()
 
   return (
@@ -21,17 +22,35 @@ export default function Navbar({ onLogout }: NavbarProps): React.ReactElement {
         <ProfileIcon size="lg" onLogout={onLogout} showDropdown={true} />
       </div>
       <NavDivider />
-      <NavButton active={currentView === 'inbox'} onClick={() => setCurrentView('inbox')}>
+      <NavButton
+        active={currentView === 'inbox'}
+        onClick={() => (currentView === 'inbox' ? onActiveNavClick?.() : setCurrentView('inbox'))}
+      >
         <IconInbox />
       </NavButton>
-      <NavButton active={currentView === 'replied'} onClick={() => setCurrentView('replied')}>
+      <NavButton
+        active={currentView === 'replied'}
+        onClick={() =>
+          currentView === 'replied' ? onActiveNavClick?.() : setCurrentView('replied')
+        }
+      >
         <IconReply />
       </NavButton>
-      <NavButton active={currentView === 'archived'} onClick={() => setCurrentView('archived')}>
+      <NavButton
+        active={currentView === 'archived'}
+        onClick={() =>
+          currentView === 'archived' ? onActiveNavClick?.() : setCurrentView('archived')
+        }
+      >
         <IconArchive />
       </NavButton>
       <NavDivider />
-      <NavButton active={currentView === 'settings'} onClick={() => setCurrentView('settings')}>
+      <NavButton
+        active={currentView === 'settings'}
+        onClick={() =>
+          currentView === 'settings' ? onActiveNavClick?.() : setCurrentView('settings')
+        }
+      >
         <IconSettings />
       </NavButton>
     </div>

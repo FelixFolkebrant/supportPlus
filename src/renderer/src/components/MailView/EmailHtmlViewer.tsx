@@ -4,6 +4,7 @@ interface Props {
   html: string
   className?: string
   messageId?: string
+  zoom?: number
 }
 
 // Lazy-load DOMPurify only in the renderer (avoid bundling in main)
@@ -68,7 +69,7 @@ function useSanitizedHtml(html: string): string {
   }, [html])
 }
 
-const EmailHtmlViewer: React.FC<Props> = ({ html, className, messageId }) => {
+const EmailHtmlViewer: React.FC<Props> = ({ html, className, messageId, zoom = 1 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const sanitized = useSanitizedHtml(html)
 
@@ -149,7 +150,8 @@ const EmailHtmlViewer: React.FC<Props> = ({ html, className, messageId }) => {
       if (!iframe.contentDocument) return
       const body = iframe.contentDocument.body
       if (!body) return
-      iframe.style.height = `${body.scrollHeight}px`
+      // Match the layout height to visual scale to avoid overlapping the composer
+      iframe.style.height = `${body.scrollHeight * zoom}px`
     }
     const hasRO =
       typeof (window as unknown as { ResizeObserver?: unknown }).ResizeObserver !== 'undefined'
@@ -192,14 +194,20 @@ const EmailHtmlViewer: React.FC<Props> = ({ html, className, messageId }) => {
         ;(ro as { disconnect: () => void }).disconnect()
       }
     }
-  }, [sanitized, messageId])
+  }, [sanitized, messageId, zoom])
 
   return (
     <iframe
       ref={iframeRef}
       title="email-html"
       className={className}
-      style={{ width: '100%', border: 'none', background: 'transparent' }}
+      style={{
+        width: '100%',
+        border: 'none',
+        background: 'transparent',
+        transform: `scale(${zoom})`,
+        transformOrigin: '0 0'
+      }}
       sandbox="allow-same-origin allow-popups"
     />
   )
