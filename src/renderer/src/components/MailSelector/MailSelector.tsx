@@ -4,8 +4,8 @@ import SortDropdown from './SortDropdown'
 import SearchInput from './SearchInput'
 import { useGmail } from '../../hooks/useGmail'
 import { Mail } from '../../hooks/GmailContextValue'
-import IconReload from '../ui/icons/IconReload'
 import LoadingSpinner from '../ui/LoadingSpinner'
+import ReloadButton from '../ui/ReloadButton'
 
 interface MailSelectorProps {
   selectedMail: Mail | null
@@ -17,6 +17,7 @@ export function MailSelector({
   setSelectedMail
 }: MailSelectorProps): React.ReactElement {
   const [archivingIds, setArchivingIds] = useState<Set<string>>(new Set())
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const {
     getCurrentMails,
     currentView,
@@ -105,6 +106,19 @@ export function MailSelector({
     return () => window.removeEventListener('mail:archiving', onArchiving as EventListener)
   }, [])
 
+  const handleRefresh = async (): Promise<void> => {
+    setIsRefreshing(true)
+    // Ensure at least 500ms of loading state for user feedback
+    const refreshPromise = new Promise<void>((resolve) => {
+      refresh()
+      resolve()
+    })
+    const minimumDelay = new Promise<void>((resolve) => setTimeout(resolve, 500))
+
+    await Promise.all([refreshPromise, minimumDelay])
+    setIsRefreshing(false)
+  }
+
   return (
     <div className="w-full max-w-xl h-full flex flex-col bg-white shadow-xl border overflow-hidden">
       {/* Mail List */}
@@ -116,14 +130,18 @@ export function MailSelector({
           </div>
           <div className="flex items-center gap-3">
             {currentView === 'inbox' && <SortDropdown />}
-            <button onClick={refresh} className="text-sm cursor-pointer text-third hover:text-prim">
-              <IconReload />
-            </button>
+            <ReloadButton onClick={handleRefresh} isLoading={isRefreshing} size={20} />
           </div>
         </div>
         <SearchInput placeholder="Search emails..." />
       </div>
       <ul ref={listRef} className="flex flex-col flex-1 overflow-y-auto scrollbar-hide bg-white">
+        {/* Refreshing indicator */}
+        {isRefreshing && (
+          <li className="flex justify-center py-4 border-b border-gray-100">
+            <LoadingSpinner size="sm" text="Refreshing mails..." color="blue" />
+          </li>
+        )}
         {Array.isArray(currentMails) && currentMails.length > 0 ? (
           <>
             {currentMails.map((m) => (

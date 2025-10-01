@@ -1,7 +1,12 @@
 import React from 'react'
 import { ZoomControls } from '../ui/ZoomControls'
+import ReloadButton from '../ui/ReloadButton'
 
 export function AppHeader(): React.JSX.Element {
+  const handleReload = (): void => {
+    window.location.reload()
+  }
+
   return (
     <div
       className="flex h-14 pointer-events-none absolute bg-transparent w-full z-100 items-center justify-between text-black text-xl font-bold"
@@ -16,6 +21,9 @@ export function AppHeader(): React.JSX.Element {
       >
         {/* Zoom controls */}
         <ZoomControls className="mr-2" showPercentage={true} />
+
+        {/* Reload button */}
+        <ReloadButton onClick={handleReload} size={16} title="Reload page (Ctrl+R)" />
 
         {/* Window control buttons */}
         <button

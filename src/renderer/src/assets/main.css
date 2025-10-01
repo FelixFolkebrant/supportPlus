@@ -19,6 +19,20 @@
   animation: fadeOutSlide 220ms ease-out forwards;
 }
 
+/* Skeleton pulse for avatar placeholders */
+@keyframes pulseGrey {
+  0%,
+  100% {
+    background-color: #e5e7eb;
+  }
+  50% {
+    background-color: #d1d5db;
+  }
+}
+.skeleton-pulse {
+  animation: pulseGrey 1.2s ease-in-out infinite;
+}
+
 @theme {
   --color-primary: #6470d7;
   --color-prim: #6470d7;
@@ -28,6 +42,7 @@
   --color-bg: #e5e9f4;
   --radius-20: 20px;
 }
+
 html,
 body {
   font-family:

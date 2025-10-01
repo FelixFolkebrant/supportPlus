@@ -12,6 +12,7 @@ import IconChevronRight from '../ui/icons/IconChevronRight'
 import IconZoomIn from '../ui/icons/IconZoomIn'
 import IconZoomOut from '../ui/icons/IconZoomOut'
 import { useToast } from '../ui/Toast/useToast'
+import SenderAvatar from '../ui/SenderAvatar'
 
 // Extend Window interface for our global function
 declare global {
@@ -132,14 +133,29 @@ export function MailView({
             transition={{ duration: 0, ease: 'easeOut' }}
             className="flex flex-col h-full"
           >
-            {/* Sticky Header with Title and Sender */}
+            {/* Sticky Header with Avatar, Title and Sender */}
             <div className="sticky top-0 bg-white z-10 px-12 pt-16 pb-4 border-b border-gray-100">
               <div className="flex justify-between items-start mb-1.5">
-                {/* Left: subject */}
-                <div className="flex items-center gap-2">
-                  <h2 className="font-bold text-secondary text-3xl select-text">
-                    {selectedMail.subject}
-                  </h2>
+                {/* Left: avatar + subject/sender */}
+                <div className="flex items-start gap-3 min-w-0">
+                  {(() => {
+                    const from = selectedMail.from || ''
+                    const nameMatch = from.match(/^(.*?)\s*<[^>]+>/)
+                    const emailMatch = from.match(/<([^>]+)>/)
+                    const name = (nameMatch?.[1] || from.replace(/\s*<[^>]+>/, '').trim()).trim()
+                    const email = (emailMatch?.[1] || '').toLowerCase()
+                    return (
+                      <SenderAvatar name={name} email={email} size={48} className="flex-shrink-0" />
+                    )
+                  })()}
+                  <div className="flex flex-col min-w-0">
+                    <h2 className="font-bold text-secondary text-3xl select-text whitespace-normal break-words">
+                      {selectedMail.subject}
+                    </h2>
+                    <div className="text-lg text-third mt-1 truncate">
+                      {selectedMail.from?.replace(/\s*<[^>]+>/, '').trim()}
+                    </div>
+                  </div>
                 </div>
                 {/* Right: two rows of controls */}
                 <div className="flex flex-col items-end gap-1">
@@ -228,9 +244,7 @@ export function MailView({
                 </div>
                 {/* end Right-side controls */}
               </div>
-              <div className="text-lg text-third mb-3">
-                {selectedMail.from?.replace(/\s*<[^>]+>/, '').trim()}
-              </div>
+              <div className="h-1" />
             </div>
 
             {/* Scrollable Content */}

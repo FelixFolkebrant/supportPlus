@@ -18,6 +18,32 @@ export default function ProfileIcon({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // Local helper component: circular image with skeleton while loading
+  const ImageWithSkeleton: React.FC<{
+    src: string
+    alt: string
+    className?: string
+    onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void
+  }> = ({ src, alt, className = '', onError }) => {
+    const [loading, setLoading] = useState(true)
+    return (
+      <div className={`relative rounded-full overflow-hidden ${className}`}>
+        {loading && <div className="absolute inset-0 rounded-full skeleton-pulse" />}
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover"
+          onLoad={() => setLoading(false)}
+          onError={(e) => {
+            setLoading(false)
+            onError?.(e)
+          }}
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    )
+  }
+
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -87,17 +113,19 @@ export default function ProfileIcon({
   }
 
   const profileContent = (
-    <div className={`relative ${sizeClasses[size]}`}>
+    <div
+      className={`relative ${sizeClasses[size]} rounded-full overflow-hidden border border-third/20`}
+    >
       {userProfile.picture ? (
-        <img
+        <ImageWithSkeleton
           src={userProfile.picture}
           alt={`${userProfile.name}'s profile`}
-          className="w-full h-full rounded-full object-cover border border-third/20"
+          className="w-full h-full"
           onError={handleImageError}
         />
       ) : null}
       <div
-        className={`w-full h-full rounded-full border border-third/20 bg-prim flex items-center justify-center text-xs font-semibold text-white ${
+        className={`absolute inset-0 rounded-full bg-prim flex items-center justify-center text-xs font-semibold text-white ${
           userProfile.picture ? 'hidden' : 'flex'
         }`}
       >
@@ -136,10 +164,11 @@ export default function ProfileIcon({
               >
                 <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-[10px] font-semibold text-gray-700">
                   {acc.picture ? (
-                    <img
+                    <ImageWithSkeleton
                       src={acc.picture}
+                      alt={acc.name || acc.email}
+                      className="w-full h-full"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
-                      className="w-full h-full object-cover"
                     />
                   ) : (
                     (acc.name || acc.email)
