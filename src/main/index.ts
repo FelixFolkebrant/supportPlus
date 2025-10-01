@@ -9,7 +9,18 @@ import { getFilteredEmails } from './google/getFilteredEmails'
 import { getUnansweredEmails, getUnansweredEmailsCount } from './google/getUnansweredEmails'
 import { getRepliedEmails, getRepliedEmailsCount } from './google/getRepliedEmails'
 import { getArchivedEmails, getArchivedEmailsCount } from './google/getArchivedEmails'
-import { getGmailClient, hasValidToken, logout as gmailLogout, sendReply } from './google/auth'
+import {
+  getGmailClient,
+  hasValidToken,
+  logout as gmailLogout,
+  sendReply,
+  addAccount as gmailAddAccount,
+  listAccountsWithProfiles as gmailListAccountsWithProfiles,
+  switchAccount as gmailSwitchAccount,
+  removeAccount as gmailRemoveAccount,
+  getActiveAccount as gmailGetActiveAccount,
+  listAccounts as gmailListAccounts
+} from './google/auth'
 import { getUserProfile } from './google/getUserProfile'
 import { archiveThread, unarchiveThread } from './google/archiveThread'
 import { setupDriveHandlers } from './google/drive'
@@ -147,6 +158,32 @@ ipcMain.handle('gmail:getUserProfile', async () => {
 
 ipcMain.handle('gmail:sendReply', async (_event, { messageId, body }) => {
   return await sendReply(messageId, body)
+})
+
+// Multi-account management
+ipcMain.handle('gmail:listAccounts', async () => {
+  return await gmailListAccounts()
+})
+
+ipcMain.handle('gmail:listAccountsWithProfiles', async () => {
+  return await gmailListAccountsWithProfiles()
+})
+
+ipcMain.handle('gmail:getActiveAccount', async () => {
+  return await gmailGetActiveAccount()
+})
+
+ipcMain.handle('gmail:switchAccount', async (_event, email: string) => {
+  return await gmailSwitchAccount(email)
+})
+
+ipcMain.handle('gmail:addAccount', async () => {
+  return await gmailAddAccount()
+})
+
+ipcMain.handle('gmail:removeAccount', async (_event, email: string) => {
+  await gmailRemoveAccount(email)
+  return true
 })
 
 // Resolve cid: image sources to data URIs for a given message

@@ -33,6 +33,11 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
   const [needsLogin, setNeedsLogin] = useState<boolean>(false)
   const [loginInProgress, setLoginInProgress] = useState<boolean>(false)
   const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined)
+  const [accounts, setAccounts] = useState<Array<{ email: string; name: string; picture: string }>>(
+    []
+  )
+  const [activeAccount, setActiveAccount] = useState<string | null>(null)
+  const [isSwitchingAccount, setIsSwitchingAccount] = useState<boolean>(false)
 
   const MAILS_PER_PAGE = 8
 
@@ -339,6 +344,72 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
     })
   }
 
+  // Helper to reload accounts and active account state
+  const reloadAccounts = useCallback(async (): Promise<void> => {
+    try {
+      const list = (await ipcRenderer.invoke('gmail:listAccountsWithProfiles')) as Array<{
+        email: string
+        name: string
+        picture: string
+      }>
+      setAccounts(list)
+      const email = (await ipcRenderer.invoke('gmail:getActiveAccount')) as string | null
+      setActiveAccount(email)
+    } catch {
+      setAccounts([])
+    }
+  }, [])
+
+  const switchAccount = async (email: string): Promise<void> => {
+    try {
+      setIsSwitchingAccount(true)
+      // Optimistically update avatar/profile immediately
+      const newProfile = accounts.find((a) => a.email === email)
+      if (newProfile) {
+        setUserProfile({
+          name: newProfile.name,
+          email: newProfile.email,
+          picture: newProfile.picture
+        })
+      }
+      // Soften list transitions
+      setMails([])
+      setUnansweredMails([])
+      setRepliedMails([])
+      setArchivedMails([])
+
+      const ok = (await ipcRenderer.invoke('gmail:switchAccount', email)) as boolean
+      if (ok) {
+        setActiveAccount(email)
+        await fetchAll()
+      }
+    } catch (e) {
+      console.error('Failed to switch account', e)
+    } finally {
+      setIsSwitchingAccount(false)
+    }
+  }
+
+  const addAccount = async (): Promise<void> => {
+    try {
+      await ipcRenderer.invoke('gmail:addAccount')
+      await reloadAccounts()
+      fetchAll()
+    } catch (e) {
+      console.error('Failed to add account', e)
+    }
+  }
+
+  const removeAccount = async (email: string): Promise<void> => {
+    try {
+      await ipcRenderer.invoke('gmail:removeAccount', email)
+      await reloadAccounts()
+      fetchAll()
+    } catch (e) {
+      console.error('Failed to remove account', e)
+    }
+  }
+
   const removeUnansweredMail = (mailId: string): void => {
     setUnansweredMails((prev) => prev.filter((m) => m.id !== mailId))
   }
@@ -395,6 +466,14 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         setNeedsLogin(true)
       }
     })
+    // Load accounts and active account
+    ipcRenderer
+      .invoke('gmail:listAccountsWithProfiles')
+      .then((list) => setAccounts(list as Array<{ email: string; name: string; picture: string }>))
+      .catch(() => setAccounts([]))
+    ipcRenderer.invoke('gmail:getActiveAccount').then((email: string | null) => {
+      setActiveAccount(email)
+    })
   }, [fetchAll])
 
   return (
@@ -412,8 +491,14 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
         loadingMore,
         hasMore,
         totalCount,
+        isSwitchingAccount,
         needsLogin,
         loginInProgress,
+        accounts,
+        activeAccount,
+        switchAccount,
+        addAccount,
+        removeAccount,
         refresh: fetchAll,
         loadMore,
         login,

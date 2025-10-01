@@ -9,17 +9,16 @@ import NavDivider from './NavDivider'
 import { useGmail } from '../../hooks/useGmail'
 
 interface NavbarProps {
-  onLogout?: () => void
   onActiveNavClick?: () => void
 }
 
-export default function Navbar({ onLogout, onActiveNavClick }: NavbarProps): React.ReactElement {
+export default function Navbar({ onActiveNavClick }: NavbarProps): React.ReactElement {
   const { currentView, setCurrentView } = useGmail()
 
   return (
     <div className="w-24 bg-bg gap-2 flex flex-col items-center py-12">
       <div className="mb-4">
-        <ProfileIcon size="lg" onLogout={onLogout} showDropdown={true} />
+        <ProfileIcon size="lg" showDropdown={true} />
       </div>
       <NavDivider />
       <NavButton

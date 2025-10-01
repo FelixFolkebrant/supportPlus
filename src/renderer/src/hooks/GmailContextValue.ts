@@ -45,8 +45,14 @@ export interface GmailContextType {
   loadingMore: boolean
   hasMore: boolean
   totalCount: number
+  isSwitchingAccount?: boolean
   needsLogin: boolean
   loginInProgress: boolean
+  accounts: Array<{ email: string; name: string; picture: string }>
+  activeAccount: string | null
+  switchAccount: (email: string) => Promise<void>
+  addAccount: () => Promise<void>
+  removeAccount: (email: string) => Promise<void>
   refresh: () => void
   loadMore: () => void
   login: () => void

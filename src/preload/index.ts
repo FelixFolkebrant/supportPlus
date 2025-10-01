@@ -13,6 +13,22 @@ const api = {
     reset: () => ipcRenderer.invoke('zoom:reset'),
     in: () => ipcRenderer.invoke('zoom:in'),
     out: () => ipcRenderer.invoke('zoom:out')
+  },
+  gmail: {
+    listAccounts: () => ipcRenderer.invoke('gmail:listAccounts') as Promise<string[]>,
+    listAccountsWithProfiles: () =>
+      ipcRenderer.invoke('gmail:listAccountsWithProfiles') as Promise<
+        Array<{ email: string; name: string; picture: string }>
+      >,
+    getActiveAccount: () => ipcRenderer.invoke('gmail:getActiveAccount') as Promise<string | null>,
+    switchAccount: (email: string) => ipcRenderer.invoke('gmail:switchAccount', email),
+    addAccount: () =>
+      ipcRenderer.invoke('gmail:addAccount') as Promise<{
+        email: string
+        name: string
+        picture: string
+      }>,
+    removeAccount: (email: string) => ipcRenderer.invoke('gmail:removeAccount', email)
   }
 }
 
