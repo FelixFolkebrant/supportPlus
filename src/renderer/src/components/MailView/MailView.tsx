@@ -11,6 +11,7 @@ import IconChevronLeft from '../ui/icons/IconChevronLeft'
 import IconChevronRight from '../ui/icons/IconChevronRight'
 import IconZoomIn from '../ui/icons/IconZoomIn'
 import IconZoomOut from '../ui/icons/IconZoomOut'
+import { useToast } from '../ui/Toast/useToast'
 
 // Extend Window interface for our global function
 declare global {
@@ -38,6 +39,7 @@ export function MailView({
   const [archiving, setArchiving] = React.useState(false)
   const { getCurrentMails } = useGmail()
   const [mailZoom, setMailZoom] = React.useState(1)
+  const { showToast } = useToast()
 
   const handlePrevMail = (): void => {
     if (!selectedMail) return
@@ -81,9 +83,34 @@ export function MailView({
       if (archiving) return
       setArchiving(true)
       if (currentView === 'archived') {
+        const title = selectedMail.subject || selectedMail.snippet || selectedMail.id || 'mail'
+        // Show toast immediately
+        showToast({
+          title: 'Thread moved',
+          description: `Moved “${title}” back to Inbox`,
+          duration: 3000,
+          variant: 'success'
+        })
         await unarchiveThread(selectedMail.threadId)
       } else {
-        await archiveThread(selectedMail.threadId)
+        const threadId = selectedMail.threadId
+        const title = selectedMail.subject || selectedMail.snippet || selectedMail.id || 'mail'
+        // Show toast immediately with Undo
+        showToast({
+          title: 'Archived',
+          description: `Archived “${title}”`,
+          actionLabel: 'Undo',
+          onAction: async () => {
+            try {
+              await unarchiveThread(threadId)
+            } catch (e) {
+              console.error('Failed to undo archive', e)
+            }
+          },
+          duration: 5000,
+          variant: 'archive'
+        })
+        await archiveThread(threadId)
       }
       setSelectedMail(null)
     } catch (error) {

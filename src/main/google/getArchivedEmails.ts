@@ -8,22 +8,22 @@ function header(msg: gmail_v1.Schema$Message, name: string): string {
 function getBody(msg: gmail_v1.Schema$Message): { content: string; isHtml: boolean } {
   if (!msg.payload) return { content: '', isHtml: false }
 
-  // Prefer plain text part
+  // Prefer HTML part for consistency with inbox, then fall back to text
   if (msg.payload.parts) {
-    for (const part of msg.payload.parts) {
-      if (part.mimeType === 'text/plain' && part.body?.data) {
-        return {
-          content: Buffer.from(part.body.data, 'base64').toString('utf-8'),
-          isHtml: false
-        }
-      }
-    }
-    // fallback to HTML part
     for (const part of msg.payload.parts) {
       if (part.mimeType === 'text/html' && part.body?.data) {
         return {
           content: Buffer.from(part.body.data, 'base64').toString('utf-8'),
           isHtml: true
+        }
+      }
+    }
+    // fallback to plain text part
+    for (const part of msg.payload.parts) {
+      if (part.mimeType === 'text/plain' && part.body?.data) {
+        return {
+          content: Buffer.from(part.body.data, 'base64').toString('utf-8'),
+          isHtml: false
         }
       }
     }

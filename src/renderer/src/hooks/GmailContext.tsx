@@ -415,45 +415,82 @@ export const GmailProvider = ({ children }: { children: ReactNode }): React.JSX.
   }
 
   const archiveThread = async (threadId: string): Promise<void> => {
+    // Optimistic UI: fade out then immediately remove locally; perform IPC in background
+    // Find the mail object for potential rollback
+    const findMailByThread = (): Mail | undefined => {
+      const all = [...mails, ...unansweredMails, ...repliedMails, ...archivedMails]
+      return all.find((m) => m.threadId === threadId)
+    }
+
+    const originalMail = findMailByThread()
+
     try {
-      // Trigger a UI animation for the item in the list before actual removal
+      // Trigger a UI animation hint
       if (typeof window !== 'undefined' && window.dispatchEvent) {
         window.dispatchEvent(new CustomEvent('mail:archiving', { detail: { threadId } }))
       }
 
-      await ipcRenderer.invoke('gmail:archiveThread', threadId)
-
-      // Give the animation a brief moment to play before removing
-      await new Promise((resolve) => setTimeout(resolve, 220))
-
-      // Remove the thread from inbox and replied views
+      // Optimistically remove from visible lists right away
       setMails((prev) => prev.filter((m) => m.threadId !== threadId))
       setUnansweredMails((prev) => prev.filter((m) => m.threadId !== threadId))
       setRepliedMails((prev) => prev.filter((m) => m.threadId !== threadId))
 
-      // Refresh archived mails to show the newly archived thread
-      const archivedData = await ipcRenderer.invoke('gmail:getArchivedMails', {
-        maxResults: MAILS_PER_PAGE
-      })
-      const archivedResponse = archivedData as { mails: Mail[]; nextPageToken?: string }
-      setArchivedMails(archivedResponse.mails)
+      // Fire the actual archive request
+      await ipcRenderer.invoke('gmail:archiveThread', threadId)
+
+      // Refresh archived view in the background to include the newly archived mail
+      ipcRenderer
+        .invoke('gmail:getArchivedMails', { maxResults: MAILS_PER_PAGE })
+        .then((archivedData) => {
+          const archivedResponse = archivedData as { mails: Mail[]; nextPageToken?: string }
+          setArchivedMails(archivedResponse.mails)
+        })
+        .catch((e) => console.warn('Failed to refresh archived mails after archive:', e))
     } catch (error) {
       console.error('Error archiving thread:', error)
+      // Rollback optimistic removal if possible
+      if (originalMail) {
+        // We don't know exact original positions; prepend to relevant lists heuristically
+        const shouldBeInInbox = true // archived removal implies it was in non-archived views
+        if (shouldBeInInbox) {
+          setMails((prev) => [originalMail, ...prev])
+          // If it was in unanswered/replied, re-add as well
+          if (originalMail.isUnread) setUnansweredMails((prev) => [originalMail, ...prev])
+          // Naively re-add to replied if it existed there
+          setRepliedMails((prev) =>
+            prev.some((m) => m.threadId === threadId) ? [originalMail, ...prev] : prev
+          )
+        }
+      }
       throw error
     }
   }
 
   const unarchiveThread = async (threadId: string): Promise<void> => {
+    // Optimistic removal from archived list; rollback on failure
+    let removedMail: Mail | undefined
+    setArchivedMails((prev) => {
+      const idx = prev.findIndex((m) => m.threadId === threadId)
+      if (idx >= 0) removedMail = prev[idx]
+      return prev.filter((m) => m.threadId !== threadId)
+    })
+
     try {
       await ipcRenderer.invoke('gmail:unarchiveThread', threadId)
 
-      // Remove the thread from archived view
-      setArchivedMails((prev) => prev.filter((m) => m.threadId !== threadId))
-
-      // Refresh other views to potentially show the unarchived thread
-      fetchAll()
+      // Optionally bring it to the top of inbox list optimistically
+      if (removedMail) {
+        setMails((prev) => [removedMail as Mail, ...prev])
+      } else {
+        // If we don't have the mail in archived (e.g., quick Undo before refresh), refresh views
+        fetchAll()
+      }
     } catch (error) {
       console.error('Error unarchiving thread:', error)
+      // Rollback archived list removal
+      if (removedMail) {
+        setArchivedMails((prev) => [removedMail as Mail, ...prev])
+      }
       throw error
     }
   }

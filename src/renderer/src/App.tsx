@@ -2,6 +2,7 @@ import React from 'react'
 import { GmailProvider } from './hooks/GmailContext'
 import { DriveProvider } from './hooks/DriveContext'
 import { AppLayout } from './components/layout'
+import { ToastProvider } from './components/ui/Toast/ToastProvider'
 import WelcomeScreen from './components/ui/WelcomeScreen'
 import { useGmail } from './hooks/useGmail'
 import { useZoomKeyboardShortcuts } from './hooks/useZoomKeyboardShortcuts'
@@ -21,7 +22,9 @@ function App(): React.JSX.Element {
   return (
     <GmailProvider>
       <DriveProvider>
-        <MailAppContent />
+        <ToastProvider>
+          <MailAppContent />
+        </ToastProvider>
       </DriveProvider>
     </GmailProvider>
   )
